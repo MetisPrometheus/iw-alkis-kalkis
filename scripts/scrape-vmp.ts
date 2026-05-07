@@ -34,7 +34,7 @@ const FAIL_HTML = path.join(OUT_DIR, "cf-block.html");
 const FAIL_PNG = path.join(OUT_DIR, "cf-block.png");
 
 const PAGE_SIZE = 100;
-const REQUEST_DELAY_MS = 600;
+const REQUEST_DELAY_MS = 350;
 const MAX_RETRIES_PER_PAGE = 3;
 const NAV_TIMEOUT_MS = 60_000;
 const FETCH_TIMEOUT_MS = 30_000;
@@ -250,21 +250,33 @@ async function main() {
 
     const totalResults =
       firstResponse.pagination?.totalResults ?? firstResponse.products?.length ?? 0;
-    // Recompute pages for *our* PAGE_SIZE — the discovery XHR ran at the SPA's
-    // smaller pageSize so its totalPages overestimates.
-    const totalPages = Math.max(1, Math.ceil(totalResults / PAGE_SIZE));
-    await log(`pagination: totalResults=${totalResults}, calibrated pages=${totalPages} @ pageSize=${PAGE_SIZE}`);
+    // Trust the API's own totalPages — VMP caps pageSize server-side (24 in
+    // practice) regardless of what we request, so computing pages from
+    // results/PAGE_SIZE undercounts. The first-response totalPages reflects
+    // what the server actually does.
+    const totalPages = firstResponse.pagination?.totalPages ?? 1;
+    await log(`pagination: totalResults=${totalResults}, totalPages=${totalPages}`);
 
-    // Discovery captured page 0 at SPA pageSize (24); we re-fetch page 0 at
-    // PAGE_SIZE=100 to get the larger first batch. So start from 0, not 1.
     const all: RawProduct[] = [];
     const cap = Math.min(totalPages, HARD_PAGE_LIMIT);
+    let consecutiveEmpty = 0;
     for (let p = 0; p < cap; p++) {
       await page.waitForTimeout(REQUEST_DELAY_MS);
       const resp = await fetchPage(page, urlTemplate, p);
       const batch = resp.products ?? [];
       all.push(...batch);
-      if (p % 10 === 0 || p === cap - 1) {
+      // Bail early if the server runs out of data — paginating past the end
+      // is wasteful.
+      if (batch.length === 0) {
+        consecutiveEmpty++;
+        if (consecutiveEmpty >= 3) {
+          await log(`stopped early at page ${p + 1}: 3 consecutive empty pages`);
+          break;
+        }
+      } else {
+        consecutiveEmpty = 0;
+      }
+      if (p % 25 === 0 || p === cap - 1) {
         await log(`page ${p + 1}/${cap}: cumulative=${all.length}`);
       }
     }
