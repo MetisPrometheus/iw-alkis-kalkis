@@ -29,6 +29,7 @@ chromiumExtra.use(StealthPlugin());
 const ROOT = path.resolve(__dirname, "..");
 const OUT_DIR = path.join(ROOT, "src", "data");
 const OUT = path.join(OUT_DIR, "vmp-raw.json");
+const CURSOR = path.join(OUT_DIR, "vmp-cursor.json");
 const PROGRESS_LOG = path.join(OUT_DIR, "vmp-progress.log");
 const FAIL_HTML = path.join(OUT_DIR, "cf-block.html");
 const FAIL_PNG = path.join(OUT_DIR, "cf-block.png");
@@ -39,10 +40,36 @@ const PAUSE_EVERY_N_PAGES = 100;
 const PAUSE_MS = 20_000;
 const MAX_RETRIES_PER_PAGE = 5;
 const RATE_LIMIT_BACKOFF_MS = 60_000;
-const MIN_PARTIAL_FOR_COMMIT = 1000;
 const NAV_TIMEOUT_MS = 60_000;
 const FETCH_TIMEOUT_MS = 30_000;
+// Default batch: well under VMP's per-IP rate-limit threshold (~600 pages)
+// so each hourly run finishes cleanly without throttling.
+const DEFAULT_BATCH_PAGES = 150;
+const BATCH_PAGES = parseInt(process.env.VMP_BATCH_PAGES ?? "", 10) || DEFAULT_BATCH_PAGES;
 const HARD_PAGE_LIMIT = parseInt(process.env.VMP_MAX_PAGES ?? "0", 10) || Infinity;
+const RESET_CURSOR = process.env.VMP_RESET_CURSOR === "1";
+
+interface Cursor {
+  nextPage: number;
+  totalPages: number;
+  totalResults: number;
+  complete: boolean;
+  sweep: number;
+  lastUpdatedAt: string;
+  lastBatchPages: number;
+  lastBatchProductsAdded: number;
+}
+
+const EMPTY_CURSOR: Cursor = {
+  nextPage: 0,
+  totalPages: 0,
+  totalResults: 0,
+  complete: false,
+  sweep: 1,
+  lastUpdatedAt: "",
+  lastBatchPages: 0,
+  lastBatchProductsAdded: 0,
+};
 
 const BASE = "https://www.vinmonopolet.no";
 
@@ -223,11 +250,55 @@ async function fetchPage(page: Page, urlTemplate: string, pageNum: number): Prom
   throw new Error("unreachable");
 }
 
+async function readCursor(): Promise<Cursor> {
+  if (RESET_CURSOR) {
+    await log("VMP_RESET_CURSOR=1 → starting fresh");
+    return { ...EMPTY_CURSOR };
+  }
+  try {
+    const buf = await fs.readFile(CURSOR, "utf8");
+    const parsed = JSON.parse(buf) as Partial<Cursor>;
+    return { ...EMPTY_CURSOR, ...parsed };
+  } catch {
+    return { ...EMPTY_CURSOR };
+  }
+}
+
+async function writeCursor(c: Cursor): Promise<void> {
+  c.lastUpdatedAt = new Date().toISOString();
+  await fs.writeFile(CURSOR, JSON.stringify(c, null, 2));
+}
+
+async function loadExistingProducts(): Promise<Map<string, RawProduct>> {
+  try {
+    const buf = await fs.readFile(OUT, "utf8");
+    const arr = JSON.parse(buf) as RawProduct[];
+    const map = new Map<string, RawProduct>();
+    for (const r of arr) {
+      const code = (r.code ?? r.varenummer ?? r.id) as string | undefined;
+      if (code) map.set(code, r);
+    }
+    return map;
+  } catch {
+    return new Map();
+  }
+}
+
 async function main() {
   await fs.mkdir(OUT_DIR, { recursive: true });
   await fs.writeFile(PROGRESS_LOG, "");
+
+  const cursor = await readCursor();
+
+  if (cursor.complete) {
+    await log(
+      `cursor reports complete (sweep ${cursor.sweep}, ${cursor.totalResults} products covered). Nothing to do.`,
+    );
+    return;
+  }
+
   await log(
-    `starting scrape, pageSize=${PAGE_SIZE}, hardLimit=${HARD_PAGE_LIMIT === Infinity ? "∞" : HARD_PAGE_LIMIT}`,
+    `starting batch from page ${cursor.nextPage}, batchPages=${BATCH_PAGES}, sweep=${cursor.sweep}, hardLimit=${HARD_PAGE_LIMIT === Infinity ? "∞" : HARD_PAGE_LIMIT}`,
   );
 
   let browser: Browser | null = null;
@@ -260,62 +331,99 @@ async function main() {
 
     const totalResults =
       firstResponse.pagination?.totalResults ?? firstResponse.products?.length ?? 0;
-    // Trust the API's own totalPages — VMP caps pageSize server-side (24 in
-    // practice) regardless of what we request, so computing pages from
-    // results/PAGE_SIZE undercounts. The first-response totalPages reflects
-    // what the server actually does.
     const totalPages = firstResponse.pagination?.totalPages ?? 1;
     await log(`pagination: totalResults=${totalResults}, totalPages=${totalPages}`);
 
-    const all: RawProduct[] = [];
-    const cap = Math.min(totalPages, HARD_PAGE_LIMIT);
+    // Existing data from prior runs — this batch merges into it.
+    const existing = await loadExistingProducts();
+    const startSize = existing.size;
+    await log(`existing dataset: ${startSize} unique products`);
+
+    const startPage = cursor.nextPage;
+    const endPage = Math.min(totalPages, startPage + BATCH_PAGES, startPage + HARD_PAGE_LIMIT);
+    await log(`this run: pages [${startPage}, ${endPage})`);
+
+    let lastCompletedPage = startPage - 1;
     let consecutiveEmpty = 0;
-    let lastSavedAt = 0;
 
     const flush = async (label: string) => {
-      await fs.writeFile(OUT, JSON.stringify(all));
-      lastSavedAt = all.length;
-      await log(`${label}: wrote ${all.length} raw records → ${OUT}`);
+      const arr = [...existing.values()];
+      await fs.writeFile(OUT, JSON.stringify(arr));
+      await log(`${label}: ${arr.length} unique products in ${OUT}`);
     };
 
+    let aborted = false;
+    let abortMsg = "";
     try {
-      for (let p = 0; p < cap; p++) {
+      for (let p = startPage; p < endPage; p++) {
         await page.waitForTimeout(REQUEST_DELAY_MS);
         const resp = await fetchPage(page, urlTemplate, p);
         const batch = resp.products ?? [];
-        all.push(...batch);
+
+        for (const item of batch) {
+          const code = (item.code ?? item.varenummer ?? item.id) as string | undefined;
+          if (code) existing.set(code, item);
+        }
+
+        lastCompletedPage = p;
 
         if (batch.length === 0) {
           consecutiveEmpty++;
           if (consecutiveEmpty >= 3) {
-            await log(`stopped early at page ${p + 1}: 3 consecutive empty pages`);
+            await log(`stopped early at page ${p + 1}: 3 consecutive empty pages — likely past end`);
+            // Treat as completion of the sweep.
+            cursor.complete = true;
             break;
           }
         } else {
           consecutiveEmpty = 0;
         }
 
-        if (p % 25 === 0 || p === cap - 1) {
-          await log(`page ${p + 1}/${cap}: cumulative=${all.length}`);
+        if ((p - startPage) % 25 === 0 || p === endPage - 1) {
+          await log(`page ${p + 1}/${totalPages}: unique=${existing.size} (+${existing.size - startSize})`);
         }
 
-        // Periodic flush + breather to keep VMP happy.
-        if (p > 0 && p % PAUSE_EVERY_N_PAGES === 0) {
+        if (p > startPage && (p - startPage) % PAUSE_EVERY_N_PAGES === 0) {
           await flush(`checkpoint at page ${p + 1}`);
           await log(`pause ${PAUSE_MS / 1000}s before continuing…`);
           await page.waitForTimeout(PAUSE_MS);
         }
       }
-      await flush("done");
     } catch (err) {
-      const msg = (err as Error).message;
-      await log(`scrape aborted at ${all.length} products: ${msg}`);
-      if (all.length >= MIN_PARTIAL_FOR_COMMIT && all.length > lastSavedAt) {
-        await flush("partial-save");
-        await log(`exiting cleanly with ${all.length} products (better than fixture).`);
-        return;
-      }
-      throw err;
+      aborted = true;
+      abortMsg = (err as Error).message;
+      await log(`batch aborted at page ${lastCompletedPage + 1}: ${abortMsg}`);
+    }
+
+    await flush(aborted ? "partial-save" : "batch-done");
+
+    // Update cursor.
+    cursor.totalPages = totalPages;
+    cursor.totalResults = totalResults;
+    cursor.lastBatchPages = Math.max(0, lastCompletedPage - startPage + 1);
+    cursor.lastBatchProductsAdded = existing.size - startSize;
+    if (cursor.complete) {
+      // Stayed true if 3 empties triggered early stop.
+    } else if (lastCompletedPage + 1 >= totalPages) {
+      cursor.complete = true;
+    } else {
+      cursor.nextPage = lastCompletedPage + 1;
+    }
+    if (cursor.complete) {
+      await log(
+        `sweep ${cursor.sweep} complete: ${existing.size} unique products covering ${totalResults} catalogue.`,
+      );
+    } else {
+      await log(
+        `batch done. nextPage=${cursor.nextPage}/${totalPages}, +${cursor.lastBatchProductsAdded} new this run.`,
+      );
+    }
+    await writeCursor(cursor);
+
+    if (aborted && existing.size === startSize) {
+      // No forward progress and no new products → propagate failure so the
+      // workflow surfaces it.
+      throw new Error(abortMsg || "batch made no progress");
     }
   } finally {
     await browser?.close();

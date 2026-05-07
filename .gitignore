@@ -46,3 +46,4 @@ next-env.d.ts
 /src/data/vmp-progress.log
 
 # vmp-raw.json IS committed by the GH Actions refresh workflow — don't ignore
+# vmp-cursor.json IS committed too (tracks resumable backfill state)

@@ -1,16 +1,27 @@
 name: Refresh Vinmonopolet data
 
 on:
-  # Daily cron disabled while we wait for the Vinmonopolet partner API key.
-  # Re-enable by uncommenting the schedule block below.
-  # schedule:
-  #   - cron: "17 5 * * *"
+  # Hourly during the one-time backfill. Once vmp-cursor.json reports
+  # complete: true, the scraper short-circuits in <30s, so the cron
+  # auto-quiesces with no further data writes. Once the partner API key
+  # arrives, comment this out and switch to that path.
+  schedule:
+    - cron: "23 * * * *"
   workflow_dispatch:
     inputs:
+      reset_cursor:
+        description: "Reset cursor and start fresh from page 0"
+        type: boolean
+        required: false
+        default: false
       max_pages:
-        description: "Cap pages (0 = no cap, useful for debugging)"
+        description: "Hard cap pages this run (debug; 0 = use BATCH_PAGES default)"
         required: false
         default: "0"
+      batch_pages:
+        description: "Override batch-size for this run (default 150)"
+        required: false
+        default: ""
 
 permissions:
   contents: write
@@ -22,43 +33,66 @@ concurrency:
 jobs:
   scrape:
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 30
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Check cursor — skip if backfill already complete
+        id: cursor_check
+        run: |
+          if [ -f src/data/vmp-cursor.json ]; then
+            complete=$(jq -r '.complete // false' src/data/vmp-cursor.json)
+            if [ "$complete" = "true" ]; then
+              echo "Cursor reports backfill complete. Skipping."
+              echo "skip=true" >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
+          fi
+          echo "skip=false" >> "$GITHUB_OUTPUT"
+
       - name: Setup Node 20
+        if: steps.cursor_check.outputs.skip != 'true'
         uses: actions/setup-node@v4
         with:
           node-version: "20"
           cache: "npm"
 
       - name: Install dependencies
+        if: steps.cursor_check.outputs.skip != 'true'
         run: npm ci
 
       - name: Install Playwright Chromium
+        if: steps.cursor_check.outputs.skip != 'true'
         run: npx playwright install --with-deps chromium
 
-      - name: Scrape Vinmonopolet
+      - name: Scrape Vinmonopolet (batch)
+        if: steps.cursor_check.outputs.skip != 'true'
         env:
+          VMP_RESET_CURSOR: ${{ github.event.inputs.reset_cursor == 'true' && '1' || '' }}
           VMP_MAX_PAGES: ${{ github.event.inputs.max_pages || '0' }}
+          VMP_BATCH_PAGES: ${{ github.event.inputs.batch_pages || '' }}
         run: npm run scrape:vmp
 
       - name: Map raw → products.json
+        if: steps.cursor_check.outputs.skip != 'true'
         run: npm run fetch:products
 
       - name: Show summary
-        if: always()
+        if: always() && steps.cursor_check.outputs.skip != 'true'
         run: |
+          echo "=== cursor ==="
+          cat src/data/vmp-cursor.json 2>/dev/null || echo "(no cursor)"
+          echo
           echo "=== meta ==="
-          cat src/data/products.meta.json 2>/dev/null || echo "(no meta yet)"
+          cat src/data/products.meta.json 2>/dev/null || echo "(no meta)"
           echo
           echo "=== raw size ==="
           wc -c src/data/vmp-raw.json 2>/dev/null || echo "(no raw)"
           echo "=== last 50 progress lines ==="
-          tail -n 50 src/data/vmp-progress.log 2>/dev/null || echo "(no progress log)"
+          tail -n 50 src/data/vmp-progress.log 2>/dev/null || echo "(no log)"
 
-      - name: Upload diagnostic artifacts on failure
+      - name: Upload diagnostics on failure
         if: failure()
         uses: actions/upload-artifact@v4
         with:
@@ -71,14 +105,22 @@ jobs:
           retention-days: 7
 
       - name: Commit refreshed data
+        if: steps.cursor_check.outputs.skip != 'true'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add src/data/vmp-raw.json
+          git add src/data/vmp-raw.json src/data/vmp-cursor.json
           if git diff --cached --quiet; then
             echo "No data changes — nothing to commit."
             exit 0
           fi
           ts=$(date -u +"%Y-%m-%d %H:%M UTC")
-          git commit -m "chore(data): refresh Vinmonopolet snapshot $ts"
+          complete=$(jq -r '.complete // false' src/data/vmp-cursor.json 2>/dev/null || echo "false")
+          next=$(jq -r '.nextPage' src/data/vmp-cursor.json 2>/dev/null || echo "?")
+          total=$(jq -r '.totalPages' src/data/vmp-cursor.json 2>/dev/null || echo "?")
+          if [ "$complete" = "true" ]; then
+            git commit -m "chore(data): VMP backfill complete — final sweep $ts"
+          else
+            git commit -m "chore(data): VMP backfill page ${next}/${total} — $ts"
+          fi
           git push
