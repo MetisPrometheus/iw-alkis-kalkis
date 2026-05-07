@@ -34,8 +34,12 @@ const FAIL_HTML = path.join(OUT_DIR, "cf-block.html");
 const FAIL_PNG = path.join(OUT_DIR, "cf-block.png");
 
 const PAGE_SIZE = 100;
-const REQUEST_DELAY_MS = 350;
-const MAX_RETRIES_PER_PAGE = 3;
+const REQUEST_DELAY_MS = 700;
+const PAUSE_EVERY_N_PAGES = 100;
+const PAUSE_MS = 20_000;
+const MAX_RETRIES_PER_PAGE = 5;
+const RATE_LIMIT_BACKOFF_MS = 60_000;
+const MIN_PARTIAL_FOR_COMMIT = 1000;
 const NAV_TIMEOUT_MS = 60_000;
 const FETCH_TIMEOUT_MS = 30_000;
 const HARD_PAGE_LIMIT = parseInt(process.env.VMP_MAX_PAGES ?? "0", 10) || Infinity;
@@ -204,9 +208,15 @@ async function fetchPage(page: Page, urlTemplate: string, pageNum: number): Prom
         await captureFailure(page, `page-${pageNum}-final-attempt`);
         throw err;
       }
-      await page.waitForTimeout(2000 * attempt);
-      if (msg.includes("403") || msg.includes("Cloudflare")) {
+      // VMP rate limit: long back-off, don't churn cookies.
+      if (msg.includes("429") || msg.includes("RateLimitingError")) {
+        await log(`rate-limited; sleeping ${RATE_LIMIT_BACKOFF_MS / 1000}s before retry ${attempt + 1}`);
+        await page.waitForTimeout(RATE_LIMIT_BACKOFF_MS);
+      } else if (msg.includes("403") || msg.includes("Cloudflare")) {
+        await page.waitForTimeout(3000);
         await warmCookies(page);
+      } else {
+        await page.waitForTimeout(2000 * attempt);
       }
     }
   }
@@ -260,29 +270,53 @@ async function main() {
     const all: RawProduct[] = [];
     const cap = Math.min(totalPages, HARD_PAGE_LIMIT);
     let consecutiveEmpty = 0;
-    for (let p = 0; p < cap; p++) {
-      await page.waitForTimeout(REQUEST_DELAY_MS);
-      const resp = await fetchPage(page, urlTemplate, p);
-      const batch = resp.products ?? [];
-      all.push(...batch);
-      // Bail early if the server runs out of data — paginating past the end
-      // is wasteful.
-      if (batch.length === 0) {
-        consecutiveEmpty++;
-        if (consecutiveEmpty >= 3) {
-          await log(`stopped early at page ${p + 1}: 3 consecutive empty pages`);
-          break;
-        }
-      } else {
-        consecutiveEmpty = 0;
-      }
-      if (p % 25 === 0 || p === cap - 1) {
-        await log(`page ${p + 1}/${cap}: cumulative=${all.length}`);
-      }
-    }
+    let lastSavedAt = 0;
 
-    await fs.writeFile(OUT, JSON.stringify(all));
-    await log(`done: wrote ${all.length} raw records → ${OUT}`);
+    const flush = async (label: string) => {
+      await fs.writeFile(OUT, JSON.stringify(all));
+      lastSavedAt = all.length;
+      await log(`${label}: wrote ${all.length} raw records → ${OUT}`);
+    };
+
+    try {
+      for (let p = 0; p < cap; p++) {
+        await page.waitForTimeout(REQUEST_DELAY_MS);
+        const resp = await fetchPage(page, urlTemplate, p);
+        const batch = resp.products ?? [];
+        all.push(...batch);
+
+        if (batch.length === 0) {
+          consecutiveEmpty++;
+          if (consecutiveEmpty >= 3) {
+            await log(`stopped early at page ${p + 1}: 3 consecutive empty pages`);
+            break;
+          }
+        } else {
+          consecutiveEmpty = 0;
+        }
+
+        if (p % 25 === 0 || p === cap - 1) {
+          await log(`page ${p + 1}/${cap}: cumulative=${all.length}`);
+        }
+
+        // Periodic flush + breather to keep VMP happy.
+        if (p > 0 && p % PAUSE_EVERY_N_PAGES === 0) {
+          await flush(`checkpoint at page ${p + 1}`);
+          await log(`pause ${PAUSE_MS / 1000}s before continuing…`);
+          await page.waitForTimeout(PAUSE_MS);
+        }
+      }
+      await flush("done");
+    } catch (err) {
+      const msg = (err as Error).message;
+      await log(`scrape aborted at ${all.length} products: ${msg}`);
+      if (all.length >= MIN_PARTIAL_FOR_COMMIT && all.length > lastSavedAt) {
+        await flush("partial-save");
+        await log(`exiting cleanly with ${all.length} products (better than fixture).`);
+        return;
+      }
+      throw err;
+    }
   } finally {
     await browser?.close();
   }
