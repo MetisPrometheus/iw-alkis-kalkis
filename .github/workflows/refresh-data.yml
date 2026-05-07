@@ -48,14 +48,27 @@ jobs:
         run: npm run fetch:products
 
       - name: Show summary
+        if: always()
         run: |
           echo "=== meta ==="
-          cat src/data/products.meta.json
+          cat src/data/products.meta.json 2>/dev/null || echo "(no meta yet)"
           echo
           echo "=== raw size ==="
-          wc -c src/data/vmp-raw.json || true
+          wc -c src/data/vmp-raw.json 2>/dev/null || echo "(no raw)"
           echo "=== last 50 progress lines ==="
-          tail -n 50 src/data/vmp-progress.log || true
+          tail -n 50 src/data/vmp-progress.log 2>/dev/null || echo "(no progress log)"
+
+      - name: Upload diagnostic artifacts on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cf-block-diagnostics
+          path: |
+            src/data/cf-block.html
+            src/data/cf-block.png
+            src/data/vmp-progress.log
+          if-no-files-found: ignore
+          retention-days: 7
 
       - name: Commit refreshed data
         run: |
