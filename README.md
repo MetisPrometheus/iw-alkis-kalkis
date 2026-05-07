@@ -1,36 +1,73 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# alkis kalkis
 
-## Getting Started
+Søkbar prisliste over Vinmonopolets sortiment, sortert etter pris per liter ren alkohol.
 
-First, run the development server:
+Live: <https://alkiskalkis.vercel.app>
 
-```bash
+## Stack
+
+- Next.js 15 (App Router) · TypeScript · Tailwind v3
+- Data: Vinmonopolet open data CSV → daily prebuild snapshot → static read
+- URL state: nuqs
+- Deploy: Vercel
+
+## Lokal kjøring
+
+```sh
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+`predev` kjører `scripts/fetch-products.ts` og oppretter `src/data/products.json` hvis den mangler. Live VMP-feed er bak Cloudflare; uten en gyldig kilde brukes det innebygde fixture-settet (~70 produkter).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Live data
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+`scripts/fetch-products.ts` prøver:
 
-## Learn More
+1. `$VMP_DATA_URL` (override – sett denne til en CSV-mirror du har)
+2. `https://www.vinmonopolet.no/medias/sys_master/products/products.csv`
+3. `https://apps.vinmonopolet.no/products.csv`
 
-To learn more about Next.js, take a look at the following resources:
+Cloudflare-blokkering på direkte fetch er forventet. To realistiske produksjonsruter:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- **Vinmonopolet partner-API**: Registrer for `apis.vinmonopolet.no`, sett `VMP_DATA_URL` (eller utvid skriptet for `Ocp-Apim-Subscription-Key`).
+- **Daglig refresh**: Vercel Cron Job → Deploy Hook for å trigge ny build hver natt. Skriptet kjører som `prebuild`.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Mappestruktur
 
-## Deploy on Vercel
+```
+scripts/
+  fetch-products.ts   CSV → JSON snapshot (kjører som prebuild + predev)
+  fixture.ts          ~70 hardkodete produkter for offline/CF-blokkert kjøring
+src/
+  app/
+    page.tsx                  forside med kategori-grid + deal-hero
+    kategori/[slug]/page.tsx  kategori- og underkategori-side med 3 layouts
+    produkt/[id]/page.tsx     enkeltprodukt
+    sok/page.tsx              fritekstsøk
+    om/page.tsx               hva er dette og hvordan regnes det
+  components/
+    CategoryGrid.tsx          klikkbare kategori-kort med expand
+    Toolbar.tsx               URL-state filter, sort, layout-toggle (nuqs)
+    ProductTable.tsx          tabellvisning
+    ProductCardGrid.tsx       bilde-grid
+    DealRadar.tsx             gamified leaderboard med score-bars
+    DealCard.tsx              gjenbrukbart kompakt deal-kort
+  lib/
+    types.ts                  Product, ProductsMeta, kategori-slugs
+    categories.ts             kategori-tre + VMP varetype-mapping
+    derive.ts                 kr/l og kr/l ren alkohol
+    products.ts               loadAll, filter, sort, getTopDeals (server-only)
+    format.ts                 nb-NO formatering
+  data/
+    products.json             gitignorert – generert ved build
+    products.meta.json        gitignorert – generert ved build
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Utregning
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```
+kr / l ren alkohol = pris ÷ (volum_liter × alkoholprosent ÷ 100)
+```
+
+Drikk med måte.

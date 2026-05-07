@@ -1,103 +1,80 @@
-import Image from "next/image";
+import { CategoryGrid } from "@/components/CategoryGrid";
+import { DealCard } from "@/components/DealCard";
+import { getProductsMeta, getTopDeals } from "@/lib/products";
+import { KATEGORI_TRE } from "@/lib/categories";
+import Link from "next/link";
 
 export default function Home() {
-  return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+  const overall = getTopDeals(5);
+  const perCategory = KATEGORI_TRE.map((kat) => ({
+    kat,
+    deals: getTopDeals(3, kat.slug),
+  })).filter((x) => x.deals.length > 0);
+  const meta = getProductsMeta();
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+  return (
+    <div className="space-y-12">
+      <section className="space-y-3">
+        <p className="text-xs uppercase tracking-wider text-foreground/50">
+          alkis kalkis · finn billigste promille
+        </p>
+        <h1 className="text-3xl font-bold tracking-tight sm:text-5xl">
+          Hva gir mest <span className="text-accent">promille</span> per krone i dag?
+        </h1>
+        <p className="max-w-2xl text-foreground/70">
+          Alle Vinmonopolets {meta.count.toLocaleString("nb-NO")} produkter, sortert etter pris per liter
+          ren alkohol — den eneste statistikken som teller. Klikk en kategori, eller bla i dagens
+          beste deals under.
+        </p>
+        {meta.source !== "vmp-live" && (
+          <p className="rounded-md border border-amber-500/20 bg-amber-500/5 px-3 py-2 text-xs text-amber-700 dark:text-amber-300">
+            ⚠️ Bruker innebygd demosett ({meta.source}). Live polet-feed kobles på i prod.
+          </p>
+        )}
+      </section>
+
+      <section className="space-y-4">
+        <div className="flex items-baseline justify-between">
+          <h2 className="text-xl font-semibold">🎯 Dagens beste deals</h2>
+          <span className="text-xs text-foreground/50">Topp 5 over hele utvalget</span>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+        <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
+          {overall.map((p, i) => (
+            <DealCard key={p.id} product={p} rank={i + 1} />
+          ))}
+        </div>
+      </section>
+
+      <section className="space-y-4">
+        <h2 className="text-xl font-semibold">Bla etter kategori</h2>
+        <CategoryGrid />
+      </section>
+
+      <section className="space-y-6">
+        <h2 className="text-xl font-semibold">Beste i hver kategori</h2>
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+          {perCategory.map(({ kat, deals }) => (
+            <div key={kat.slug} className="space-y-2">
+              <div className="flex items-baseline justify-between">
+                <h3 className="text-lg font-semibold">
+                  <span aria-hidden>{kat.emoji}</span> {kat.navn}
+                </h3>
+                <Link
+                  href={`/kategori/${kat.slug}-alle`}
+                  className="text-xs text-foreground/60 hover:text-accent"
+                >
+                  Alle {kat.navn.toLowerCase()} →
+                </Link>
+              </div>
+              <div className="space-y-2">
+                {deals.map((p, i) => (
+                  <DealCard key={p.id} product={p} rank={i + 1} />
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
     </div>
   );
 }

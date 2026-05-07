@@ -39,3 +39,7 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# generated data (rebuilt at every build via prebuild script)
+/src/data/products.json
+/src/data/products.meta.json
