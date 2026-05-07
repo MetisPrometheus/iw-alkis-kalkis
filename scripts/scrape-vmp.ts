@@ -248,14 +248,18 @@ async function main() {
 
     const { urlTemplate, firstResponse } = await discoverApiPattern(page);
 
-    const totalPages = firstResponse.pagination?.totalPages ?? 1;
-    const totalResults = firstResponse.pagination?.totalResults ?? firstResponse.products?.length ?? 0;
-    await log(`pagination: totalPages=${totalPages}, totalResults=${totalResults}`);
+    const totalResults =
+      firstResponse.pagination?.totalResults ?? firstResponse.products?.length ?? 0;
+    // Recompute pages for *our* PAGE_SIZE — the discovery XHR ran at the SPA's
+    // smaller pageSize so its totalPages overestimates.
+    const totalPages = Math.max(1, Math.ceil(totalResults / PAGE_SIZE));
+    await log(`pagination: totalResults=${totalResults}, calibrated pages=${totalPages} @ pageSize=${PAGE_SIZE}`);
 
-    const all: RawProduct[] = [...(firstResponse.products ?? [])];
+    // Discovery captured page 0 at SPA pageSize (24); we re-fetch page 0 at
+    // PAGE_SIZE=100 to get the larger first batch. So start from 0, not 1.
+    const all: RawProduct[] = [];
     const cap = Math.min(totalPages, HARD_PAGE_LIMIT);
-    // The discovery XHR was page 0; start from page 1 to avoid a duplicate.
-    for (let p = 1; p < cap; p++) {
+    for (let p = 0; p < cap; p++) {
       await page.waitForTimeout(REQUEST_DELAY_MS);
       const resp = await fetchPage(page, urlTemplate, p);
       const batch = resp.products ?? [];

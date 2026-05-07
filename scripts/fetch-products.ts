@@ -152,15 +152,15 @@ async function main() {
 
   // Highest priority: scraped raw JSON committed by the GH Actions workflow.
   const scraped = await tryLoadScraped();
-  if (scraped) {
+  if (scraped && scraped.length > 0) {
     products = mapAll(scraped);
-    if (products.length > 200) {
+    if (products.length > 0) {
       source = "vmp-live";
       notes.push(`Mapped ${products.length} products from scraped vmp-raw.json (${scraped.length} raw records).`);
       await writeOutputs(products, source, notes);
       return;
     }
-    notes.push(`Scraped raw file present but mapping yielded only ${products.length} products; trying other sources.`);
+    notes.push(`Scraped raw had ${scraped.length} records but mapping yielded 0 — schema drift?`);
   }
 
   const csv = await tryFetchCsv();
