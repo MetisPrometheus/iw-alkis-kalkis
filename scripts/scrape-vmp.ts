@@ -41,7 +41,6 @@ const FETCH_TIMEOUT_MS = 30_000;
 const HARD_PAGE_LIMIT = parseInt(process.env.VMP_MAX_PAGES ?? "0", 10) || Infinity;
 
 const BASE = "https://www.vinmonopolet.no";
-const API_PATH = "/vmpws/v2/vmp/products";
 
 type RawProduct = Record<string, unknown>;
 interface ApiResponse {
@@ -87,41 +86,92 @@ async function warmCookies(page: Page) {
   await log("warming Cloudflare cookies via homepage…");
   await page.goto(`${BASE}/`, { waitUntil: "domcontentloaded", timeout: NAV_TIMEOUT_MS });
 
-  // CF interstitial auto-redirects after 5s typically. Wait up to 20s for it
-  // to clear. If it doesn't, we'll know — no point continuing.
   for (let i = 0; i < 10; i++) {
     await page.waitForTimeout(2000);
     const title = await page.title().catch(() => "");
     const url = page.url();
     if (!isCloudflareInterstitial(title, url)) {
       await log(`homepage cleared CF (title="${title}") after ${(i + 1) * 2}s`);
-      break;
+      return;
     }
     await log(`still on CF interstitial: title="${title}" url=${url}`);
-    if (i === 9) {
-      await captureFailure(page, "homepage-still-on-CF-after-20s");
-      throw new Error(
-        "Cloudflare interstitial did not clear within 20s — bot detection likely flagged us.",
-      );
-    }
   }
+  await captureFailure(page, "homepage-still-on-CF-after-20s");
+  throw new Error("Cloudflare interstitial did not clear within 20s.");
+}
 
-  // Touch the search page so the API origin is exercised in a realistic flow.
+/**
+ * Navigates to a search page, listens for vmpws XHRs, and returns the URL
+ * pattern + sample response of the call that returns paginated products.
+ * VMP's URL shape has shifted across releases; rather than guess, we sniff.
+ */
+async function discoverApiPattern(
+  page: Page,
+): Promise<{ urlTemplate: string; firstResponse: ApiResponse }> {
+  await log("discovering vmpws product-listing URL by listening to /search/ XHRs…");
+
+  type Captured = { url: string; body: ApiResponse };
+  const captured: Captured[] = [];
+
+  const handler = async (resp: import("playwright").Response) => {
+    const url = resp.url();
+    if (!url.includes("/vmpws/")) return;
+    if (resp.status() !== 200) return;
+    try {
+      const ct = resp.headers()["content-type"] ?? "";
+      if (!ct.includes("json")) return;
+      const body = (await resp.json()) as ApiResponse;
+      if (body && Array.isArray(body.products) && body.products.length > 0) {
+        captured.push({ url, body });
+        await log(`captured: ${url} (${body.products.length} products)`);
+      }
+    } catch {
+      /* ignore parse failures */
+    }
+  };
+  page.on("response", handler);
+
   try {
-    await page.goto(`${BASE}/search/?q=:relevance`, {
+    await page.goto(`${BASE}/search/?q=:relevance:visibleInSearch:true&searchType=product`, {
       waitUntil: "domcontentloaded",
       timeout: NAV_TIMEOUT_MS,
     });
-    await page.waitForTimeout(2500);
+    // Let the SPA fire its XHRs.
+    await page.waitForTimeout(8000);
     await page.mouse.move(400, 300);
-    await page.mouse.move(500, 400);
-  } catch (err) {
-    await log(`(non-fatal) search nav: ${(err as Error).message}`);
+    await page.evaluate(() => window.scrollBy(0, 400));
+    await page.waitForTimeout(2500);
+  } finally {
+    page.off("response", handler);
   }
+
+  if (captured.length === 0) {
+    await captureFailure(page, "no-vmpws-product-XHRs-captured");
+    throw new Error(
+      "Search page loaded but no /vmpws/ XHR returned a product listing. SPA shape changed?",
+    );
+  }
+
+  // Take the most recent capture (likely the most-complete one with FULL fields
+  // if the SPA chains progressively). Strip currentPage so we can paginate.
+  const sample = captured[captured.length - 1];
+  const u = new URL(sample.url);
+  u.searchParams.delete("currentPage");
+  u.searchParams.delete("page");
+  // Bump pageSize for efficiency.
+  u.searchParams.set("pageSize", String(PAGE_SIZE));
+  // Force richest field set if not already.
+  if (!u.searchParams.has("fields")) u.searchParams.set("fields", "FULL");
+
+  const urlTemplate = u.toString();
+  await log(`API pattern resolved: ${urlTemplate} (sample had ${sample.body.products?.length ?? 0} products)`);
+  return { urlTemplate, firstResponse: sample.body };
 }
 
-async function fetchPage(page: Page, pageNum: number): Promise<ApiResponse> {
-  const url = `${BASE}${API_PATH}?q=:relevance&pageSize=${PAGE_SIZE}&currentPage=${pageNum}&fields=FULL`;
+async function fetchPage(page: Page, urlTemplate: string, pageNum: number): Promise<ApiResponse> {
+  const u = new URL(urlTemplate);
+  u.searchParams.set("currentPage", String(pageNum));
+  const url = u.toString();
   for (let attempt = 1; attempt <= MAX_RETRIES_PER_PAGE; attempt++) {
     try {
       const json: ApiResponse = await page.evaluate(
@@ -196,18 +246,18 @@ async function main() {
 
     await warmCookies(page);
 
-    const firstUrl = `${BASE}${API_PATH}?q=:relevance&pageSize=${PAGE_SIZE}&currentPage=0&fields=FULL`;
-    await log(`first probe: ${firstUrl}`);
-    const first = await fetchPage(page, 0);
-    const totalPages = first.pagination?.totalPages ?? 1;
-    const totalResults = first.pagination?.totalResults ?? first.products?.length ?? 0;
+    const { urlTemplate, firstResponse } = await discoverApiPattern(page);
+
+    const totalPages = firstResponse.pagination?.totalPages ?? 1;
+    const totalResults = firstResponse.pagination?.totalResults ?? firstResponse.products?.length ?? 0;
     await log(`pagination: totalPages=${totalPages}, totalResults=${totalResults}`);
 
-    const all: RawProduct[] = [...(first.products ?? [])];
+    const all: RawProduct[] = [...(firstResponse.products ?? [])];
     const cap = Math.min(totalPages, HARD_PAGE_LIMIT);
+    // The discovery XHR was page 0; start from page 1 to avoid a duplicate.
     for (let p = 1; p < cap; p++) {
       await page.waitForTimeout(REQUEST_DELAY_MS);
-      const resp = await fetchPage(page, p);
+      const resp = await fetchPage(page, urlTemplate, p);
       const batch = resp.products ?? [];
       all.push(...batch);
       if (p % 10 === 0 || p === cap - 1) {
