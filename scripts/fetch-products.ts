@@ -14,11 +14,13 @@ import { classifyVmpVaretype } from "../src/lib/categories";
 import { prisPerLiter, prisPerLiterRenAlkohol } from "../src/lib/derive";
 import type { Product, ProductsMeta } from "../src/lib/types";
 import { buildFixture } from "./fixture";
+import { mapAll } from "./map-vmp";
 
 const ROOT = path.resolve(__dirname, "..");
 const OUT_DIR = path.join(ROOT, "src", "data");
 const OUT_PRODUCTS = path.join(OUT_DIR, "products.json");
 const OUT_META = path.join(OUT_DIR, "products.meta.json");
+const VMP_RAW = path.join(OUT_DIR, "vmp-raw.json");
 
 const SOURCES = [
   process.env.VMP_DATA_URL,
@@ -148,6 +150,19 @@ async function main() {
   let source: ProductsMeta["source"];
   const notes: string[] = [];
 
+  // Highest priority: scraped raw JSON committed by the GH Actions workflow.
+  const scraped = await tryLoadScraped();
+  if (scraped) {
+    products = mapAll(scraped);
+    if (products.length > 200) {
+      source = "vmp-live";
+      notes.push(`Mapped ${products.length} products from scraped vmp-raw.json (${scraped.length} raw records).`);
+      await writeOutputs(products, source, notes);
+      return;
+    }
+    notes.push(`Scraped raw file present but mapping yielded only ${products.length} products; trying other sources.`);
+  }
+
   const csv = await tryFetchCsv();
   if (csv) {
     try {
@@ -173,17 +188,35 @@ async function main() {
     );
   }
 
+  await writeOutputs(products, source, notes);
+}
+
+async function writeOutputs(
+  products: Product[],
+  source: ProductsMeta["source"],
+  notes: string[],
+) {
   const meta: ProductsMeta = {
     generatedAt: new Date().toISOString(),
     source,
     count: products.length,
     notes,
   };
-
   await fs.writeFile(OUT_PRODUCTS, JSON.stringify(products));
   await fs.writeFile(OUT_META, JSON.stringify(meta, null, 2));
-
   console.log(`[done] wrote ${products.length} products from ${source}`);
+}
+
+async function tryLoadScraped(): Promise<Record<string, unknown>[] | null> {
+  try {
+    const buf = await fs.readFile(VMP_RAW, "utf8");
+    const parsed = JSON.parse(buf);
+    if (!Array.isArray(parsed)) return null;
+    console.log(`[scraped] loaded ${parsed.length} raw records from ${VMP_RAW}`);
+    return parsed as Record<string, unknown>[];
+  } catch {
+    return null;
+  }
 }
 
 main().catch((err) => {

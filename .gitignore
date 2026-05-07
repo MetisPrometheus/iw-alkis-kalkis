@@ -43,3 +43,6 @@ next-env.d.ts
 # generated data (rebuilt at every build via prebuild script)
 /src/data/products.json
 /src/data/products.meta.json
+/src/data/vmp-progress.log
+
+# vmp-raw.json IS committed by the GH Actions refresh workflow — don't ignore

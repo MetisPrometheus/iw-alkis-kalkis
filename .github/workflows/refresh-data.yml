@@ -1,0 +1,71 @@
+name: Refresh Vinmonopolet data
+
+on:
+  schedule:
+    # Daily at 05:17 UTC (07:17 Oslo summer / 06:17 winter). Off-hour to dodge
+    # peak Vinmonopolet traffic and Cloudflare's busiest moments.
+    - cron: "17 5 * * *"
+  workflow_dispatch:
+    inputs:
+      max_pages:
+        description: "Cap pages (0 = no cap, useful for debugging)"
+        required: false
+        default: "0"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: refresh-data
+  cancel-in-progress: false
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Scrape Vinmonopolet
+        env:
+          VMP_MAX_PAGES: ${{ github.event.inputs.max_pages || '0' }}
+        run: npm run scrape:vmp
+
+      - name: Map raw → products.json
+        run: npm run fetch:products
+
+      - name: Show summary
+        run: |
+          echo "=== meta ==="
+          cat src/data/products.meta.json
+          echo
+          echo "=== raw size ==="
+          wc -c src/data/vmp-raw.json || true
+          echo "=== last 50 progress lines ==="
+          tail -n 50 src/data/vmp-progress.log || true
+
+      - name: Commit refreshed data
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/data/vmp-raw.json
+          if git diff --cached --quiet; then
+            echo "No data changes — nothing to commit."
+            exit 0
+          fi
+          ts=$(date -u +"%Y-%m-%d %H:%M UTC")
+          git commit -m "chore(data): refresh Vinmonopolet snapshot $ts"
+          git push

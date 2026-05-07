@@ -8,6 +8,8 @@
     "start": "next start",
     "lint": "eslint",
     "fetch:products": "tsx scripts/fetch-products.ts",
+    "scrape:vmp": "tsx scripts/scrape-vmp.ts",
+    "refresh:data": "npm run scrape:vmp && npm run fetch:products",
     "prebuild": "tsx scripts/fetch-products.ts",
     "predev": "tsx scripts/fetch-products.ts --skip-if-exists"
   },
@@ -26,6 +28,7 @@
     "autoprefixer": "^10.5.0",
     "eslint": "^9",
     "eslint-config-next": "15.5.16",
+    "playwright": "^1.59.1",
     "postcss": "^8.5.14",
     "tailwindcss": "^3.4.19",
     "tsx": "^4.21.0",
