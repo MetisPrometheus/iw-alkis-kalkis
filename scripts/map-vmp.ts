@@ -74,7 +74,11 @@ export function mapVmpRecord(raw: Raw): Product | null {
   const navn = pickStr(raw, "name", "varenavn", "title");
   if (!id || !navn) return null;
 
-  const volumLiter = pickNum(raw, "volume", "volum");
+  // VMP returns volume in centiliters as a raw number (e.g. 75 for 0.75 l, 300
+  // for 3 l). Our schema stores liters, so divide by 100. We also round to 3
+  // decimals to drop float-point junk like 27.500000000000004.
+  const volumeRaw = pickNum(raw, "volume", "volum");
+  const volumLiter = volumeRaw > 0 ? Math.round((volumeRaw / 100) * 1000) / 1000 : 0;
   const pris = pickNum(raw, "price", "pris");
   const alkoholProsent = pickNum(raw, "alcohol", "alkohol", "alcoholPercentage");
   if (!volumLiter || !pris) return null;

@@ -13,8 +13,12 @@ interface PageProps {
   params: Promise<{ id: string }>;
 }
 
+// Render on demand. With 15k+ products, prerendering every page at build
+// time bloats the build to >30 min and isn't worth it for the long tail.
+// Next.js will cache rendered pages on first hit (ISR-style).
+export const dynamicParams = true;
 export async function generateStaticParams() {
-  return getAllProducts().map((p) => ({ id: p.id }));
+  return [];
 }
 
 export async function generateMetadata({ params }: PageProps) {

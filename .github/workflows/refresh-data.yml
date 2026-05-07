@@ -1,10 +1,10 @@
 name: Refresh Vinmonopolet data
 
 on:
-  schedule:
-    # Daily at 05:17 UTC (07:17 Oslo summer / 06:17 winter). Off-hour to dodge
-    # peak Vinmonopolet traffic and Cloudflare's busiest moments.
-    - cron: "17 5 * * *"
+  # Daily cron disabled while we wait for the Vinmonopolet partner API key.
+  # Re-enable by uncommenting the schedule block below.
+  # schedule:
+  #   - cron: "17 5 * * *"
   workflow_dispatch:
     inputs:
       max_pages:
