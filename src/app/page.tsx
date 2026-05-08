@@ -5,7 +5,6 @@ import { KATEGORI_TRE } from "@/lib/categories";
 import Link from "next/link";
 
 export default function Home() {
-  const overall = getTopDeals(5);
   const perCategory = KATEGORI_TRE.map((kat) => ({
     kat,
     deals: getTopDeals(3, kat.slug),
@@ -23,26 +22,13 @@ export default function Home() {
         </h1>
         <p className="max-w-2xl text-foreground/70">
           Alle Vinmonopolets {meta.count.toLocaleString("nb-NO")} produkter, sortert etter pris per liter
-          ren alkohol — den eneste statistikken som teller. Klikk en kategori, eller bla i dagens
-          beste deals under.
+          ren alkohol — den eneste statistikken som teller. Velg en kategori under.
         </p>
         {meta.source !== "vmp-live" && (
           <p className="rounded-md border border-amber-500/20 bg-amber-500/5 px-3 py-2 text-xs text-amber-700 dark:text-amber-300">
             ⚠️ Bruker innebygd demosett ({meta.source}). Live polet-feed kobles på i prod.
           </p>
         )}
-      </section>
-
-      <section className="space-y-4">
-        <div className="flex items-baseline justify-between">
-          <h2 className="text-xl font-semibold">🎯 Dagens beste deals</h2>
-          <span className="text-xs text-foreground/50">Topp 5 over hele utvalget</span>
-        </div>
-        <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
-          {overall.map((p, i) => (
-            <DealCard key={p.id} product={p} rank={i + 1} />
-          ))}
-        </div>
       </section>
 
       <section className="space-y-4">
