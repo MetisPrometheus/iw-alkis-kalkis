@@ -12,7 +12,7 @@ const SORT_VALUES = [
   "navn",
 ] as const;
 
-const LAYOUT_VALUES = ["table", "grid", "deals"] as const;
+const LAYOUT_VALUES = ["grid", "table", "deals"] as const;
 
 const SORT_LABELS: Record<(typeof SORT_VALUES)[number], string> = {
   ppra: "Best deal (kr/l ren) ↑",
@@ -32,19 +32,29 @@ const LAYOUT_LABELS: Record<(typeof LAYOUT_VALUES)[number], { label: string; emo
 };
 
 export function Toolbar({ countries }: { countries: string[] }) {
-  const [state, setState] = useQueryStates(
+  const [state, setStateRaw] = useQueryStates(
     {
       sort: parseAsStringEnum([...SORT_VALUES]).withDefault("ppra"),
-      layout: parseAsStringEnum([...LAYOUT_VALUES]).withDefault("table"),
+      layout: parseAsStringEnum([...LAYOUT_VALUES]).withDefault("grid"),
       land: parseAsString.withDefault(""),
       minAbv: parseAsInteger,
       maxAbv: parseAsInteger,
       minPris: parseAsInteger,
       maxPris: parseAsInteger,
       q: parseAsString.withDefault(""),
+      page: parseAsInteger,
     },
     { shallow: false },
   );
+
+  // Reset page=1 whenever a filter/sort/layout-changing patch is applied so we
+  // don't end up on an empty page after narrowing the result set.
+  type Patch = Parameters<typeof setStateRaw>[0];
+  const setState = (patch: Patch) => {
+    const filterKeys = ["sort", "land", "minAbv", "maxAbv", "minPris", "maxPris", "q"] as const;
+    const touchesFilter = filterKeys.some((k) => k in (patch as Record<string, unknown>));
+    return setStateRaw(touchesFilter ? { ...patch, page: null } : patch);
+  };
 
   return (
     <div className="space-y-3 rounded-xl border border-foreground/10 bg-surface p-3">

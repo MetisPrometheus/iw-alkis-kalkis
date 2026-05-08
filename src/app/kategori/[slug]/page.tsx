@@ -4,6 +4,7 @@ import { Toolbar } from "@/components/Toolbar";
 import { ProductTable } from "@/components/ProductTable";
 import { ProductCardGrid } from "@/components/ProductCardGrid";
 import { DealRadar } from "@/components/DealRadar";
+import { Paginator } from "@/components/Paginator";
 import {
   filterProducts,
   getAllProducts,
@@ -19,7 +20,8 @@ import {
 } from "@/lib/categories";
 import { formatPris } from "@/lib/format";
 
-const ALL_LAYOUTS = ["table", "grid", "deals"] as const;
+const ALL_LAYOUTS = ["grid", "table", "deals"] as const;
+const PAGE_SIZE = 60;
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -69,16 +71,17 @@ export default async function CategoryPage({ params, searchParams }: PageProps) 
 
   const sp = await searchParams;
   const sort = (typeof sp.sort === "string" ? sp.sort : "ppra") as SortKey;
-  const layoutParam = typeof sp.layout === "string" ? sp.layout : "table";
+  const layoutParam = typeof sp.layout === "string" ? sp.layout : "grid";
   const layout = (ALL_LAYOUTS as readonly string[]).includes(layoutParam)
     ? (layoutParam as (typeof ALL_LAYOUTS)[number])
-    : "table";
+    : "grid";
   const land = typeof sp.land === "string" ? sp.land : "";
   const q = typeof sp.q === "string" ? sp.q : "";
   const minAbv = numParam(sp.minAbv);
   const maxAbv = numParam(sp.maxAbv);
   const minPris = numParam(sp.minPris);
   const maxPris = numParam(sp.maxPris);
+  const page = Math.max(1, numParam(sp.page) ?? 1);
 
   const all = getAllProducts();
   const filtered = filterProducts(all, {
@@ -92,6 +95,11 @@ export default async function CategoryPage({ params, searchParams }: PageProps) 
     maxPris: maxPris ?? undefined,
   });
   const sorted = sortProducts(filtered, sort);
+  const totalPages = Math.max(1, Math.ceil(sorted.length / PAGE_SIZE));
+  const safePage = Math.min(page, totalPages);
+  const pageStart = (safePage - 1) * PAGE_SIZE;
+  const pageEnd = pageStart + PAGE_SIZE;
+  const pageSlice = sorted.slice(pageStart, pageEnd);
   const stats = getCategoryStats(resolved.mainSlug);
   const countries = getCountries(
     filterProducts(all, { hovedkategori: resolved.mainSlug }),
@@ -122,9 +130,13 @@ export default async function CategoryPage({ params, searchParams }: PageProps) 
           {resolved.title}
         </h1>
         <div className="flex flex-wrap gap-x-6 gap-y-1 text-sm text-foreground/70">
-          <span>{sorted.length} viste · {stats.count} totalt i kategori</span>
+          <span>
+            Viser {pageSlice.length === 0 ? 0 : pageStart + 1}–{pageStart + pageSlice.length} av{" "}
+            {sorted.length.toLocaleString("nb-NO")}
+            {sorted.length !== stats.count && ` (${stats.count.toLocaleString("nb-NO")} totalt i kategori)`}
+          </span>
           {stats.cheapestPpra > 0 && (
-            <span>Beste i kategori: {formatPris(Math.round(stats.cheapestPpra))} / l ren</span>
+            <span>Beste: {formatPris(Math.round(stats.cheapestPpra))} / l ren</span>
           )}
           {stats.medianPpra > 0 && (
             <span>Median: {formatPris(Math.round(stats.medianPpra))} / l ren</span>
@@ -148,9 +160,11 @@ export default async function CategoryPage({ params, searchParams }: PageProps) 
 
       <Toolbar countries={countries} />
 
-      {layout === "table" && <ProductTable products={sorted} />}
-      {layout === "grid" && <ProductCardGrid products={sorted} />}
-      {layout === "deals" && <DealRadar products={sorted} />}
+      {layout === "table" && <ProductTable products={pageSlice} />}
+      {layout === "grid" && <ProductCardGrid products={pageSlice} />}
+      {layout === "deals" && <DealRadar products={pageSlice} />}
+
+      <Paginator currentPage={safePage} totalPages={totalPages} searchParams={sp} />
     </div>
   );
 }
