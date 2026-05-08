@@ -116,7 +116,9 @@ export function classifyVmpVaretype(
   const u = underkategori.toLowerCase();
 
   if (h.includes("øl") || h.includes("ol")) {
-    if (u.includes("ipa")) return { hoved: "ol", under: "ipa" };
+    // VMP labels IPAs as "India pale ale" — has no "ipa" substring, so check
+    // both forms. IPA must come *before* the generic ale check.
+    if (u.includes("ipa") || u.includes("india pale")) return { hoved: "ol", under: "ipa" };
     if (u.includes("stout") || u.includes("porter")) return { hoved: "ol", under: "stout" };
     if (u.includes("hvete") || u.includes("weiss") || u.includes("wit")) return { hoved: "ol", under: "hveteol" };
     if (u.includes("ale")) return { hoved: "ol", under: "ale" };
@@ -126,11 +128,14 @@ export function classifyVmpVaretype(
 
   if (h.includes("rødvin") || h.includes("rodvin")) return { hoved: "vin", under: "rodvin" };
   if (h.includes("hvitvin")) return { hoved: "vin", under: "hvitvin" };
-  if (h.includes("rosé") || h.includes("rosevin") || h.includes("rosé")) return { hoved: "vin", under: "rosevin" };
-  if (h.includes("musserende") || h.includes("champagne") || h.includes("cava") || h.includes("prosecco")) return { hoved: "vin", under: "musserende" };
-  if (h.includes("sterkvin") || h.includes("sherry") || h.includes("portvin") || h.includes("madeira")) return { hoved: "vin", under: "sterkvin" };
+  if (h.includes("rosé") || h.includes("rosevin")) return { hoved: "vin", under: "rosevin" };
+  // Perlende vin (lightly sparkling) groups with musserende — same drinking
+  // occasion, same shelf neighbours.
+  if (h.includes("musserende") || h.includes("perlende") || h.includes("champagne") || h.includes("cava") || h.includes("prosecco")) return { hoved: "vin", under: "musserende" };
+  // Aromatisert vin (vermouth, etc.) sits with the fortified bucket.
+  if (h.includes("sterkvin") || h.includes("aromatisert") || h.includes("sherry") || h.includes("portvin") || h.includes("madeira")) return { hoved: "vin", under: "sterkvin" };
   if (h.includes("dessertvin")) return { hoved: "vin", under: "dessertvin" };
-  if (h.includes("fruktvin") || h.includes("mjød") || h.includes("met")) return { hoved: "vin", under: "fruktvin" };
+  if (h.includes("fruktvin") || h.includes("mjød") || h.includes("sake") || h.includes("met")) return { hoved: "vin", under: "fruktvin" };
 
   if (h.includes("brennevin") || h.includes("sprit")) {
     if (u.includes("gin")) return { hoved: "brennevin", under: "gin" };
@@ -138,7 +143,8 @@ export function classifyVmpVaretype(
     if (u.includes("whisky") || u.includes("whiskey") || u.includes("bourbon")) return { hoved: "brennevin", under: "whisky" };
     if (u.includes("rom")) return { hoved: "brennevin", under: "rom" };
     if (u.includes("akevitt") || u.includes("aquavit")) return { hoved: "brennevin", under: "akevitt" };
-    if (u.includes("cognac") || u.includes("brandy") || u.includes("armagnac")) return { hoved: "brennevin", under: "cognac" };
+    // Druebrennevin = grape brandy (cognac/armagnac/grappa family).
+    if (u.includes("cognac") || u.includes("brandy") || u.includes("armagnac") || u.includes("druebrennevin")) return { hoved: "brennevin", under: "cognac" };
     if (u.includes("likør") || u.includes("liqueur")) return { hoved: "brennevin", under: "likor" };
     if (u.includes("tequila") || u.includes("mezcal")) return { hoved: "brennevin", under: "tequila" };
     return { hoved: "brennevin", under: "annet-brennevin" };
