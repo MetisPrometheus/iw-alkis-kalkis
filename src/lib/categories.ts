@@ -130,6 +130,16 @@ export function classifyVmpVaretype(
     return { hoved: "ol", under: "annet-ol" };
   }
 
+  // VMP "Delvis avalkoholisert vin" (partially de-alcoholized, ~7-8%) is its
+  // own main category. These are not alkoholfri — they're low-ABV wines —
+  // and should land in the appropriate colour bucket via the sub-category.
+  if (h.includes("avalkoholisert") || h.includes("av.alk")) {
+    if (u.includes("rødvin") || u.includes("rod")) return { hoved: "vin", under: "rodvin" };
+    if (u.includes("hvitvin") || u.includes("hvit")) return { hoved: "vin", under: "hvitvin" };
+    if (u.includes("rosé") || u.includes("rose")) return { hoved: "vin", under: "rosevin" };
+    return { hoved: "vin", under: "rodvin" };
+  }
+
   if (h.includes("rødvin") || h.includes("rodvin")) return { hoved: "vin", under: "rodvin" };
   if (h.includes("hvitvin")) return { hoved: "vin", under: "hvitvin" };
   if (h.includes("rosé") || h.includes("rosevin")) return { hoved: "vin", under: "rosevin" };

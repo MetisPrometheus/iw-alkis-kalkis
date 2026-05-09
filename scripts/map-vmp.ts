@@ -85,6 +85,12 @@ export function mapVmpRecord(raw: Raw): Product | null {
 
   const hovedNavn = pickStr(raw, "main_category", "hovedkategori") ?? "";
   const underNavn = pickStr(raw, "main_sub_category", "underkategori") ?? "";
+
+  // VMP sells gift bags, shopping bags, accessories under "Gaveartikler" —
+  // not drinks; drop them entirely.
+  const hLower = hovedNavn.toLowerCase();
+  if (hLower.includes("gaveartikler") || hLower.includes("tilbehør")) return null;
+
   const cls = classifyVmpVaretype(hovedNavn, underNavn);
 
   const land = pickStr(raw, "main_country", "land");
