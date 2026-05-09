@@ -33,13 +33,13 @@ export default function Image() {
               height: "84px",
               borderRadius: "20px",
               background: "#161513",
-              color: "#fafaf7",
               fontSize: "52px",
               fontWeight: 800,
               letterSpacing: "-3px",
             }}
           >
-            a<span style={{ color: "#b3304f" }}>k</span>
+            <span style={{ color: "#fafaf7" }}>a</span>
+            <span style={{ color: "#b3304f" }}>k</span>
           </div>
           <div
             style={{
@@ -56,6 +56,8 @@ export default function Image() {
         <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
           <div
             style={{
+              display: "flex",
+              flexWrap: "wrap",
               fontSize: "92px",
               fontWeight: 800,
               lineHeight: 1.05,
@@ -63,8 +65,9 @@ export default function Image() {
               maxWidth: "1000px",
             }}
           >
-            Hva gir mest{" "}
-            <span style={{ color: "#b3304f" }}>promille</span> per krone?
+            <span>Hva gir mest&nbsp;</span>
+            <span style={{ color: "#b3304f" }}>promille&nbsp;</span>
+            <span>per krone?</span>
           </div>
           <div
             style={{
