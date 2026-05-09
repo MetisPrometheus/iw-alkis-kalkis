@@ -70,7 +70,11 @@ export default async function CategoryPage({ params, searchParams }: PageProps) 
   if (!resolved) notFound();
 
   const sp = await searchParams;
-  const sort = (typeof sp.sort === "string" ? sp.sort : "ppra") as SortKey;
+  // Alkoholfritt has no meaningful kr/L ren alkohol — default to plain
+  // kr/L for those routes.
+  const isAlkFri = resolved.mainSlug === "annet";
+  const defaultSort: SortKey = isAlkFri ? "ppl" : "ppra";
+  const sort = (typeof sp.sort === "string" ? sp.sort : defaultSort) as SortKey;
   const layoutParam = typeof sp.layout === "string" ? sp.layout : "grid";
   const layout = (ALL_LAYOUTS as readonly string[]).includes(layoutParam)
     ? (layoutParam as (typeof ALL_LAYOUTS)[number])

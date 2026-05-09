@@ -4,6 +4,8 @@ import { useQueryStates, parseAsString, parseAsStringEnum, parseAsInteger } from
 const SORT_VALUES = [
   "ppra",
   "ppra-desc",
+  "ppl",
+  "ppl-desc",
   "pris",
   "pris-desc",
   "abv",
@@ -17,6 +19,8 @@ const LAYOUT_VALUES = ["grid", "table", "deals"] as const;
 const SORT_LABELS: Record<(typeof SORT_VALUES)[number], string> = {
   ppra: "Best deal (kr/l ren) ↑",
   "ppra-desc": "Verste deal (kr/l ren) ↓",
+  ppl: "Billigst per liter ↑",
+  "ppl-desc": "Dyrest per liter ↓",
   pris: "Pris ↑",
   "pris-desc": "Pris ↓",
   abv: "Alkohol % ↑",

@@ -27,6 +27,8 @@ export function getCountries(products: Product[] = PRODUCTS): string[] {
 export type SortKey =
   | "ppra"
   | "ppra-desc"
+  | "ppl"
+  | "ppl-desc"
   | "pris"
   | "pris-desc"
   | "abv"
@@ -75,6 +77,10 @@ export function sortProducts(products: Product[], sort: SortKey): Product[] {
       return copy.sort((a, b) => a.prisPerLiterRenAlkohol - b.prisPerLiterRenAlkohol);
     case "ppra-desc":
       return copy.sort((a, b) => b.prisPerLiterRenAlkohol - a.prisPerLiterRenAlkohol);
+    case "ppl":
+      return copy.sort((a, b) => a.prisPerLiter - b.prisPerLiter);
+    case "ppl-desc":
+      return copy.sort((a, b) => b.prisPerLiter - a.prisPerLiter);
     case "pris":
       return copy.sort((a, b) => a.pris - b.pris);
     case "pris-desc":
@@ -90,10 +96,17 @@ export function sortProducts(products: Product[], sort: SortKey): Product[] {
   }
 }
 
-export function getTopDeals(limit = 5, hovedkategori?: string): Product[] {
-  let pool = PRODUCTS.filter((p) => p.prisPerLiterRenAlkohol > 0);
+export function getTopDeals(
+  limit = 5,
+  hovedkategori?: string,
+  sort: SortKey = "ppra",
+): Product[] {
+  // For ppl-sorted picks (alkoholfritt), require a positive ppl rather than
+  // ppra so we don't drop the 0% products.
+  const requireField = sort.startsWith("ppl") ? "prisPerLiter" : "prisPerLiterRenAlkohol";
+  let pool = PRODUCTS.filter((p) => (p[requireField] ?? 0) > 0);
   if (hovedkategori) pool = pool.filter((p) => p.hovedkategori === hovedkategori);
-  return sortProducts(pool, "ppra").slice(0, limit);
+  return sortProducts(pool, sort).slice(0, limit);
 }
 
 export function getCategoryStats(hovedkategori: string): {

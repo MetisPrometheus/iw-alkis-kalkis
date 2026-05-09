@@ -1,15 +1,47 @@
 import Link from "next/link";
 import type { Product } from "@/lib/types";
-import { formatAbv, formatPpra, formatPris, formatVolum } from "@/lib/format";
+import { formatAbv, formatPris, formatVolum } from "@/lib/format";
 
-export function DealCard({ product, rank }: { product: Product; rank?: number }) {
+export type DealTone = "alc" | "free";
+
+export function DealCard({
+  product,
+  rank,
+  tone = "alc",
+}: {
+  product: Product;
+  rank?: number;
+  tone?: DealTone;
+}) {
+  // Free-tone uses sky blue; alc-tone uses the site accent (red).
+  const toneClasses =
+    tone === "free"
+      ? {
+          rank: "text-sky-600 dark:text-sky-400",
+          metricLabel: "text-foreground/50",
+          metricValue: "text-sky-600 dark:text-sky-400",
+          hover: "hover:border-sky-500/40",
+        }
+      : {
+          rank: "text-accent",
+          metricLabel: "text-foreground/50",
+          metricValue: "text-accent",
+          hover: "hover:border-accent/40",
+        };
+
+  const showPpra = tone !== "free" && product.prisPerLiterRenAlkohol > 0;
+  const metricLabel = showPpra ? "kr/l ren" : "kr/l";
+  const metricValue = showPpra
+    ? Math.round(product.prisPerLiterRenAlkohol)
+    : Math.round(product.prisPerLiter);
+
   return (
     <Link
       href={`/produkt/${product.id}`}
-      className="group flex gap-4 rounded-xl border border-foreground/10 bg-surface p-4 transition-colors hover:border-accent/40"
+      className={`group flex gap-4 rounded-xl border border-foreground/10 bg-surface p-4 transition-colors ${toneClasses.hover}`}
     >
       {rank != null && (
-        <div className="flex w-10 shrink-0 items-start justify-center pt-1 text-2xl font-bold tabular-nums text-accent">
+        <div className={`flex w-10 shrink-0 items-start justify-center pt-1 text-2xl font-bold tabular-nums ${toneClasses.rank}`}>
           #{rank}
         </div>
       )}
@@ -38,9 +70,9 @@ export function DealCard({ product, rank }: { product: Product; rank?: number })
         </div>
       </div>
       <div className="flex flex-col items-end justify-center text-right">
-        <div className="text-xs uppercase tracking-wide text-foreground/50">kr/l ren</div>
-        <div className="text-lg font-bold text-accent tabular-nums">
-          {formatPpra(product.prisPerLiterRenAlkohol).replace(" / l ren", "")}
+        <div className={`text-xs uppercase tracking-wide ${toneClasses.metricLabel}`}>{metricLabel}</div>
+        <div className={`text-lg font-bold tabular-nums ${toneClasses.metricValue}`}>
+          {formatPris(metricValue).replace("kr ", "")} kr
         </div>
       </div>
     </Link>

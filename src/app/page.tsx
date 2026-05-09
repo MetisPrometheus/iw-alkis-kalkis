@@ -1,14 +1,21 @@
 import { CategoryGrid } from "@/components/CategoryGrid";
-import { DealCard } from "@/components/DealCard";
+import { DealCard, type DealTone } from "@/components/DealCard";
 import { getProductsMeta, getTopDeals } from "@/lib/products";
 import { KATEGORI_TRE } from "@/lib/categories";
 import Link from "next/link";
 
 export default function Home() {
-  const perCategory = KATEGORI_TRE.map((kat) => ({
-    kat,
-    deals: getTopDeals(3, kat.slug),
-  })).filter((x) => x.deals.length > 0);
+  const perCategory = KATEGORI_TRE.map((kat) => {
+    // Alkoholfritt has ABV ≈ 0, so kr/L pure alcohol is meaningless. Sort
+    // those by raw kr/L instead.
+    const sort = kat.slug === "annet" ? "ppl" : "ppra";
+    const tone: DealTone = kat.slug === "annet" ? "free" : "alc";
+    return {
+      kat,
+      tone,
+      deals: getTopDeals(3, kat.slug, sort),
+    };
+  }).filter((x) => x.deals.length > 0);
   const meta = getProductsMeta();
 
   return (
@@ -39,11 +46,16 @@ export default function Home() {
       <section className="space-y-6">
         <h2 className="text-xl font-semibold">Beste i hver kategori</h2>
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-          {perCategory.map(({ kat, deals }) => (
+          {perCategory.map(({ kat, tone, deals }) => (
             <div key={kat.slug} className="space-y-2">
               <div className="flex items-baseline justify-between">
                 <h3 className="text-lg font-semibold">
                   <span aria-hidden>{kat.emoji}</span> {kat.navn}
+                  {tone === "free" && (
+                    <span className="ml-2 text-xs font-normal text-sky-600 dark:text-sky-400">
+                      (sortert: kr / liter)
+                    </span>
+                  )}
                 </h3>
                 <Link
                   href={`/kategori/${kat.slug}-alle`}
@@ -54,7 +66,7 @@ export default function Home() {
               </div>
               <div className="space-y-2">
                 {deals.map((p, i) => (
-                  <DealCard key={p.id} product={p} rank={i + 1} />
+                  <DealCard key={p.id} product={p} rank={i + 1} tone={tone} />
                 ))}
               </div>
             </div>
