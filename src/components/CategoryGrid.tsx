@@ -3,7 +3,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { KATEGORI_TRE } from "@/lib/categories";
 
-export function CategoryGrid() {
+export function CategoryGrid({ counts }: { counts?: Record<string, number> }) {
   const [open, setOpen] = useState<string | null>(null);
 
   return (
@@ -25,6 +25,9 @@ export function CategoryGrid() {
                 <div className="flex items-baseline justify-between gap-2">
                   <h3 className="text-lg font-semibold">{kat.navn}</h3>
                   <span className="text-xs text-foreground/50">
+                    {counts?.[kat.slug] != null
+                      ? `${counts[kat.slug].toLocaleString("nb-NO")} produkter · `
+                      : ""}
                     {kat.underkategorier.length} typer
                   </span>
                 </div>

@@ -109,6 +109,14 @@ export function getTopDeals(
   return sortProducts(pool, sort).slice(0, limit);
 }
 
+export function getCountByMainCategory(): Record<string, number> {
+  const counts: Record<string, number> = {};
+  for (const p of PRODUCTS) {
+    counts[p.hovedkategori] = (counts[p.hovedkategori] ?? 0) + 1;
+  }
+  return counts;
+}
+
 export function getCategoryStats(hovedkategori: string): {
   count: number;
   cheapestPpra: number;

@@ -1,10 +1,15 @@
 import { CategoryGrid } from "@/components/CategoryGrid";
 import { DealCard, type DealTone } from "@/components/DealCard";
-import { getProductsMeta, getTopDeals } from "@/lib/products";
+import {
+  getCountByMainCategory,
+  getProductsMeta,
+  getTopDeals,
+} from "@/lib/products";
 import { KATEGORI_TRE } from "@/lib/categories";
 import Link from "next/link";
 
 export default function Home() {
+  const counts = getCountByMainCategory();
   const perCategory = KATEGORI_TRE.map((kat) => {
     // Alkoholfritt has ABV ≈ 0, so kr/L pure alcohol is meaningless. Sort
     // those by raw kr/L instead.
@@ -19,11 +24,8 @@ export default function Home() {
   const meta = getProductsMeta();
 
   return (
-    <div className="space-y-12">
+    <div className="space-y-8 sm:space-y-12">
       <section className="space-y-3">
-        <p className="text-xs uppercase tracking-wider text-foreground/50">
-          alkis kalkis · finn billigste promille
-        </p>
         <h1 className="text-3xl font-bold tracking-tight sm:text-5xl">
           Hva gir mest <span className="text-accent">promille</span> per krone i dag?
         </h1>
@@ -40,7 +42,7 @@ export default function Home() {
 
       <section className="space-y-4">
         <h2 className="text-xl font-semibold">Bla etter kategori</h2>
-        <CategoryGrid />
+        <CategoryGrid counts={counts} />
       </section>
 
       <section className="space-y-6">
