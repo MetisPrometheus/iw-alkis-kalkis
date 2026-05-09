@@ -14,10 +14,25 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+const SITE_TITLE = "alkis kalkis — finn billigste promille på Polet";
+const SITE_DESC =
+  "Sammenlign Vinmonopolets utvalg etter pris per liter ren alkohol. Best deal-radar, kategoriknappene og mer.";
+
 export const metadata: Metadata = {
-  title: "alkis kalkis — finn billigste promille på Polet",
-  description:
-    "Sammenlign Vinmonopolets utvalg etter pris per liter ren alkohol. Best deal-radar, kategoriknappene og mer.",
+  title: SITE_TITLE,
+  description: SITE_DESC,
+  openGraph: {
+    title: SITE_TITLE,
+    description: SITE_DESC,
+    type: "website",
+    locale: "nb_NO",
+    siteName: "alkis kalkis",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: SITE_TITLE,
+    description: SITE_DESC,
+  },
 };
 
 export default function RootLayout({
