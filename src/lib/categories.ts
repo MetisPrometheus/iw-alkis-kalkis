@@ -115,7 +115,11 @@ export function classifyVmpVaretype(
   const h = hovedkategori.toLowerCase();
   const u = underkategori.toLowerCase();
 
-  if (h.includes("øl") || h.includes("ol")) {
+  // Alkoholfritt must be checked first — its name contains "ol" (alk-OL-fritt)
+  // which would otherwise match the beer check below.
+  if (h.includes("alkoholfri") || h.includes("alkoholfritt")) return { hoved: "annet", under: "alkoholfritt" };
+
+  if (h.includes("øl") || h === "ol" || h.startsWith("ol ")) {
     // VMP labels IPAs as "India pale ale" — has no "ipa" substring, so check
     // both forms. IPA must come *before* the generic ale check.
     if (u.includes("ipa") || u.includes("india pale")) return { hoved: "ol", under: "ipa" };
@@ -154,8 +158,6 @@ export function classifyVmpVaretype(
     if (u.includes("søt") || u.includes("sweet")) return { hoved: "sider", under: "sider-sot" };
     return { hoved: "sider", under: "sider-tor" };
   }
-
-  if (h.includes("alkoholfri") || h.includes("alkoholfritt")) return { hoved: "annet", under: "alkoholfritt" };
 
   return { hoved: "annet", under: "alkoholfritt" };
 }
