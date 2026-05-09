@@ -77,8 +77,7 @@ export default function Image() {
               maxWidth: "900px",
             }}
           >
-            {meta.count.toLocaleString("nb-NO")} produkter fra Vinmonopolet,
-            sortert etter pris per liter ren alkohol.
+            {`${meta.count.toLocaleString("nb-NO")} produkter fra Vinmonopolet, sortert etter pris per liter ren alkohol.`}
           </div>
         </div>
 
