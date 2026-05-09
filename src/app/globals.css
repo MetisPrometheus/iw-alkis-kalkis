@@ -3,6 +3,7 @@
 @tailwind utilities;
 
 :root {
+  color-scheme: light;
   --background: #fafaf7;
   --foreground: #161513;
   --accent: #b3304f;
@@ -14,7 +15,6 @@
 body {
   background: var(--background);
   color: var(--foreground);
-  color-scheme: light;
 }
 
 .deal-bar {

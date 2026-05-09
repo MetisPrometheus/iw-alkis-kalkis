@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import Link from "next/link";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
@@ -33,6 +33,11 @@ export const metadata: Metadata = {
     title: SITE_TITLE,
     description: SITE_DESC,
   },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#fafaf7",
+  colorScheme: "light",
 };
 
 export default function RootLayout({
