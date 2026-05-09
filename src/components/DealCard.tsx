@@ -17,9 +17,9 @@ export function DealCard({
   const toneClasses =
     tone === "free"
       ? {
-          rank: "text-sky-600 dark:text-sky-400",
+          rank: "text-sky-600",
           metricLabel: "text-foreground/50",
-          metricValue: "text-sky-600 dark:text-sky-400",
+          metricValue: "text-sky-600",
           hover: "hover:border-sky-500/40",
         }
       : {

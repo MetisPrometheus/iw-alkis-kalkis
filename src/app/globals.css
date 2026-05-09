@@ -11,20 +11,10 @@
   --surface-2: #f1efea;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0e0d0c;
-    --foreground: #f4f1ea;
-    --accent: #ff5278;
-    --accent-fg: #1a0a10;
-    --surface: #181614;
-    --surface-2: #221f1c;
-  }
-}
-
 body {
   background: var(--background);
   color: var(--foreground);
+  color-scheme: light;
 }
 
 .deal-bar {

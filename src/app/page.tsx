@@ -32,7 +32,7 @@ export default function Home() {
           ren alkohol — den eneste statistikken som teller. Velg en kategori under.
         </p>
         {meta.source !== "vmp-live" && (
-          <p className="rounded-md border border-amber-500/20 bg-amber-500/5 px-3 py-2 text-xs text-amber-700 dark:text-amber-300">
+          <p className="rounded-md border border-amber-500/20 bg-amber-500/5 px-3 py-2 text-xs text-amber-700">
             ⚠️ Bruker innebygd demosett ({meta.source}). Live polet-feed kobles på i prod.
           </p>
         )}
@@ -52,7 +52,7 @@ export default function Home() {
                 <h3 className="text-lg font-semibold">
                   <span aria-hidden>{kat.emoji}</span> {kat.navn}
                   {tone === "free" && (
-                    <span className="ml-2 text-xs font-normal text-sky-600 dark:text-sky-400">
+                    <span className="ml-2 text-xs font-normal text-sky-600">
                       (sortert: kr / liter)
                     </span>
                   )}
