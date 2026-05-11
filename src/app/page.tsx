@@ -66,9 +66,11 @@ export default function Home() {
                   Alle {kat.navn.toLowerCase()} →
                 </Link>
               </div>
-              <div className="space-y-2">
+              <div className="grid grid-cols-2 gap-2 sm:grid-cols-1">
                 {deals.map((p, i) => (
-                  <DealCard key={p.id} product={p} rank={i + 1} tone={tone} />
+                  <div key={p.id} className={i >= 2 ? "hidden sm:block" : ""}>
+                    <DealCard product={p} rank={i + 1} tone={tone} />
+                  </div>
                 ))}
               </div>
             </div>
