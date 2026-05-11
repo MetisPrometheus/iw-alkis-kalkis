@@ -37,5 +37,5 @@ export function formatAbv(prosent: number): string {
 }
 
 export function formatPpra(value: number): string {
-  return formatPris(Math.round(value)) + " / l ren";
+  return formatPris(Math.round(value)) + " / l alc";
 }

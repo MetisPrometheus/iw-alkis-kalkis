@@ -1,14 +1,11 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { Toolbar } from "@/components/Toolbar";
-import { ProductTable } from "@/components/ProductTable";
 import { ProductCardGrid } from "@/components/ProductCardGrid";
-import { DealRadar } from "@/components/DealRadar";
 import { Paginator } from "@/components/Paginator";
 import {
   filterProducts,
   getAllProducts,
-  getCategoryStats,
   getCountries,
   sortProducts,
   type SortKey,
@@ -18,9 +15,7 @@ import {
   getSubCategory,
   KATEGORI_TRE,
 } from "@/lib/categories";
-import { formatPris } from "@/lib/format";
 
-const ALL_LAYOUTS = ["grid", "table", "deals"] as const;
 const PAGE_SIZE = 60;
 
 interface PageProps {
@@ -75,16 +70,8 @@ export default async function CategoryPage({ params, searchParams }: PageProps) 
   const isAlkFri = resolved.mainSlug === "annet";
   const defaultSort: SortKey = isAlkFri ? "ppl" : "ppra";
   const sort = (typeof sp.sort === "string" ? sp.sort : defaultSort) as SortKey;
-  const layoutParam = typeof sp.layout === "string" ? sp.layout : "grid";
-  const layout = (ALL_LAYOUTS as readonly string[]).includes(layoutParam)
-    ? (layoutParam as (typeof ALL_LAYOUTS)[number])
-    : "grid";
   const land = typeof sp.land === "string" ? sp.land : "";
   const q = typeof sp.q === "string" ? sp.q : "";
-  const minAbv = numParam(sp.minAbv);
-  const maxAbv = numParam(sp.maxAbv);
-  const minPris = numParam(sp.minPris);
-  const maxPris = numParam(sp.maxPris);
   const page = Math.max(1, numParam(sp.page) ?? 1);
 
   const all = getAllProducts();
@@ -93,10 +80,6 @@ export default async function CategoryPage({ params, searchParams }: PageProps) 
     underkategori: resolved.kind === "sub" ? resolved.subSlug : undefined,
     land: land || undefined,
     query: q || undefined,
-    minAbv: minAbv ?? undefined,
-    maxAbv: maxAbv ?? undefined,
-    minPris: minPris ?? undefined,
-    maxPris: maxPris ?? undefined,
   });
   const sorted = sortProducts(filtered, sort);
   const totalPages = Math.max(1, Math.ceil(sorted.length / PAGE_SIZE));
@@ -104,7 +87,6 @@ export default async function CategoryPage({ params, searchParams }: PageProps) 
   const pageStart = (safePage - 1) * PAGE_SIZE;
   const pageEnd = pageStart + PAGE_SIZE;
   const pageSlice = sorted.slice(pageStart, pageEnd);
-  const stats = getCategoryStats(resolved.mainSlug);
   const countries = getCountries(
     filterProducts(all, { hovedkategori: resolved.mainSlug }),
   );
@@ -133,18 +115,9 @@ export default async function CategoryPage({ params, searchParams }: PageProps) 
           <span aria-hidden>{mainCat?.emoji}</span>
           {resolved.title}
         </h1>
-        <div className="flex flex-wrap gap-x-6 gap-y-1 text-sm text-foreground/70">
-          <span>
-            Viser {pageSlice.length === 0 ? 0 : pageStart + 1}–{pageStart + pageSlice.length} av{" "}
-            {sorted.length.toLocaleString("nb-NO")}
-            {sorted.length !== stats.count && ` (${stats.count.toLocaleString("nb-NO")} totalt i kategori)`}
-          </span>
-          {stats.cheapestPpra > 0 && (
-            <span>Beste: {formatPris(Math.round(stats.cheapestPpra))} / l ren</span>
-          )}
-          {stats.medianPpra > 0 && (
-            <span>Median: {formatPris(Math.round(stats.medianPpra))} / l ren</span>
-          )}
+        <div className="text-sm text-foreground/70">
+          Viser {pageSlice.length === 0 ? 0 : pageStart + 1}–{pageStart + pageSlice.length} av{" "}
+          {sorted.length.toLocaleString("nb-NO")}
         </div>
       </header>
 
@@ -164,9 +137,7 @@ export default async function CategoryPage({ params, searchParams }: PageProps) 
 
       <Toolbar countries={countries} />
 
-      {layout === "table" && <ProductTable products={pageSlice} />}
-      {layout === "grid" && <ProductCardGrid products={pageSlice} />}
-      {layout === "deals" && <DealRadar products={pageSlice} />}
+      <ProductCardGrid products={pageSlice} />
 
       <Paginator currentPage={safePage} totalPages={totalPages} searchParams={sp} />
     </div>

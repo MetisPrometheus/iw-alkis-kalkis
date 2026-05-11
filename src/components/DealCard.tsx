@@ -30,7 +30,7 @@ export function DealCard({
         };
 
   const showPpra = tone !== "free" && product.prisPerLiterRenAlkohol > 0;
-  const metricLabel = showPpra ? "kr/l ren" : "kr/l";
+  const metricLabel = showPpra ? "kr/l alc" : "kr/l";
   const metricValue = showPpra
     ? Math.round(product.prisPerLiterRenAlkohol)
     : Math.round(product.prisPerLiter);
@@ -45,7 +45,7 @@ export function DealCard({
           #{rank}
         </div>
       )}
-      <div className="hidden h-24 w-16 shrink-0 items-center justify-center overflow-hidden rounded bg-surface-2 sm:flex">
+      <div className="flex h-24 w-16 shrink-0 items-center justify-center overflow-hidden rounded bg-surface-2">
         {product.bildeUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img

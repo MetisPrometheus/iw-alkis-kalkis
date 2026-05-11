@@ -1,7 +1,5 @@
 import { Toolbar } from "@/components/Toolbar";
-import { ProductTable } from "@/components/ProductTable";
 import { ProductCardGrid } from "@/components/ProductCardGrid";
-import { DealRadar } from "@/components/DealRadar";
 import { Paginator } from "@/components/Paginator";
 import {
   filterProducts,
@@ -11,7 +9,6 @@ import {
   type SortKey,
 } from "@/lib/products";
 
-const ALL_LAYOUTS = ["grid", "table", "deals"] as const;
 const PAGE_SIZE = 60;
 
 interface PageProps {
@@ -26,26 +23,14 @@ export const metadata = {
 export default async function SearchPage({ searchParams }: PageProps) {
   const sp = await searchParams;
   const sort = (typeof sp.sort === "string" ? sp.sort : "ppra") as SortKey;
-  const layoutParam = typeof sp.layout === "string" ? sp.layout : "grid";
-  const layout = (ALL_LAYOUTS as readonly string[]).includes(layoutParam)
-    ? (layoutParam as (typeof ALL_LAYOUTS)[number])
-    : "grid";
   const land = typeof sp.land === "string" ? sp.land : "";
   const q = typeof sp.q === "string" ? sp.q : "";
-  const minAbv = numParam(sp.minAbv);
-  const maxAbv = numParam(sp.maxAbv);
-  const minPris = numParam(sp.minPris);
-  const maxPris = numParam(sp.maxPris);
   const page = Math.max(1, numParam(sp.page) ?? 1);
 
   const all = getAllProducts();
   const filtered = filterProducts(all, {
     land: land || undefined,
     query: q || undefined,
-    minAbv: minAbv ?? undefined,
-    maxAbv: maxAbv ?? undefined,
-    minPris: minPris ?? undefined,
-    maxPris: maxPris ?? undefined,
   });
   const sorted = sortProducts(filtered, sort);
   const totalPages = Math.max(1, Math.ceil(sorted.length / PAGE_SIZE));
@@ -70,9 +55,7 @@ export default async function SearchPage({ searchParams }: PageProps) {
 
       <Toolbar countries={countries} />
 
-      {layout === "table" && <ProductTable products={pageSlice} />}
-      {layout === "grid" && <ProductCardGrid products={pageSlice} />}
-      {layout === "deals" && <DealRadar products={pageSlice} />}
+      <ProductCardGrid products={pageSlice} />
 
       <Paginator
         currentPage={safePage}

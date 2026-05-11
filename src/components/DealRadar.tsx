@@ -19,8 +19,8 @@ export function DealRadar({ products }: { products: Product[] }) {
   return (
     <div className="space-y-2">
       <div className="flex items-baseline justify-between text-xs text-foreground/60">
-        <span>Beste deal: {formatPris(Math.round(min))} / l ren</span>
-        <span>Verste: {formatPris(Math.round(max))} / l ren</span>
+        <span>Beste deal: {formatPris(Math.round(min))} / l alc</span>
+        <span>Verste: {formatPris(Math.round(max))} / l alc</span>
       </div>
       <ol className="space-y-1.5">
         {products.map((p, i) => {

@@ -44,7 +44,7 @@ export function ProductCardGrid({ products }: { products: Product[] }) {
                 </span>
                 {p.prisPerLiterRenAlkohol > 0 ? (
                   <span className="rounded bg-accent/10 px-1.5 py-0.5 text-xs font-semibold tabular-nums text-accent">
-                    {formatPris(Math.round(p.prisPerLiterRenAlkohol))} /l ren
+                    {formatPris(Math.round(p.prisPerLiterRenAlkohol))} /l alc
                   </span>
                 ) : (
                   <span className="rounded bg-sky-500/10 px-1.5 py-0.5 text-xs font-semibold tabular-nums text-sky-600">

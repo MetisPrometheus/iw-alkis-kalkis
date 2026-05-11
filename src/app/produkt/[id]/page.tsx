@@ -104,7 +104,7 @@ export default async function ProductPage({ params }: PageProps) {
             <Stat label="Volum" value={formatVolum(product.volumLiter)} />
             <Stat label="Alkohol" value={formatAbv(product.alkoholProsent)} />
             <Stat
-              label="Kr / l ren"
+              label="Kr / l alc"
               value={formatPris(Math.round(product.prisPerLiterRenAlkohol))}
               highlight
             />

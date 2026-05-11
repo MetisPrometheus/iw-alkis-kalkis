@@ -14,7 +14,7 @@ export function ProductTable({ products }: { products: Product[] }) {
             <th className="px-3 py-2 text-right">Pris</th>
             <th className="px-3 py-2 text-right">Kr / l</th>
             <th className="px-3 py-2 text-right">
-              <span className="text-accent">Kr / l ren</span>
+              <span className="text-accent">Kr / l alc</span>
             </th>
             <th className="px-3 py-2">Land</th>
           </tr>
