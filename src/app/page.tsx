@@ -29,9 +29,9 @@ export default function Home() {
         <h1 className="text-3xl font-bold tracking-tight sm:text-5xl">
           Hva gir mest <span className="text-accent">promille</span> per krone i dag?
         </h1>
-        <p className="max-w-2xl text-foreground/70">
+        <p className="max-w-2xl text-sm text-foreground/70">
           Alle Vinmonopolets {meta.count.toLocaleString("nb-NO")} produkter, sortert etter pris per liter
-          ren alkohol — den eneste statistikken som teller. Velg en kategori under.
+          ren alkohol — den eneste statistikken som teller.
         </p>
         {meta.source !== "vmp-live" && (
           <p className="rounded-md border border-amber-500/20 bg-amber-500/5 px-3 py-2 text-xs text-amber-700">
