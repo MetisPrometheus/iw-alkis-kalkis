@@ -34,19 +34,19 @@ body {
 
 /* Fluid type scale — clamps between mobile and desktop sizes. */
 .text-fluid-display {
-  font-size: clamp(2rem, 1.1rem + 4.2vw, 3.6rem);
-  line-height: 1.06;
+  font-size: clamp(1.875rem, 1.3rem + 2.5vw, 3rem);
+  line-height: 1.1;
   letter-spacing: -0.025em;
 }
 
 .text-fluid-title {
-  font-size: clamp(1.6rem, 1.15rem + 2vw, 2.4rem);
+  font-size: clamp(1.5rem, 1.3rem + 1vw, 1.875rem);
   line-height: 1.12;
   letter-spacing: -0.02em;
 }
 
 .text-fluid-section {
-  font-size: clamp(1.15rem, 1rem + 0.8vw, 1.45rem);
+  font-size: clamp(1.2rem, 1.15rem + 0.25vw, 1.3rem);
   line-height: 1.2;
   letter-spacing: -0.01em;
 }

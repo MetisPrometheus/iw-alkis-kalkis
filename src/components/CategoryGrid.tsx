@@ -29,12 +29,7 @@ export function CategoryGrid({ counts }: { counts?: Record<string, number> }) {
               aria-expanded={isOpen}
               className="flex w-full items-center gap-4 p-5 text-left"
             >
-              <span
-                className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-white/70 text-3xl"
-                aria-hidden
-              >
-                {kat.emoji}
-              </span>
+              <span className="shrink-0 text-4xl" aria-hidden>{kat.emoji}</span>
               <div className="min-w-0 flex-1">
                 <div className="flex items-baseline justify-between gap-2">
                   <h3 className="whitespace-nowrap text-lg font-semibold">{kat.navn}</h3>
