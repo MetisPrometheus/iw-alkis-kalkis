@@ -5,7 +5,7 @@ import { formatAbv, formatPris, formatVolum } from "@/lib/format";
 export function DealRadar({ products }: { products: Product[] }) {
   if (products.length === 0) {
     return (
-      <div className="rounded-xl border border-dashed border-foreground/10 p-10 text-center text-foreground/50">
+      <div className="rounded-2xl border border-dashed border-foreground/10 p-10 text-center text-foreground/50">
         Ingen produkter passer filtrene.
       </div>
     );
@@ -30,7 +30,7 @@ export function DealRadar({ products }: { products: Product[] }) {
             <li key={p.id}>
               <Link
                 href={`/produkt/${p.id}`}
-                className="group relative flex items-center gap-3 overflow-hidden rounded-lg border border-foreground/10 bg-surface px-3 py-2 transition-colors hover:border-accent/40"
+                className="group relative flex items-center gap-3 overflow-hidden rounded-xl border border-foreground/10 bg-surface px-3 py-2 shadow-card transition-all hover:border-accent/40 hover:shadow-card-lg"
               >
                 <div
                   className="deal-bar pointer-events-none absolute inset-y-0 left-0 -z-0 opacity-15 transition-opacity group-hover:opacity-25"
@@ -48,7 +48,7 @@ export function DealRadar({ products }: { products: Product[] }) {
                 <div className="z-10 hidden text-right text-xs text-foreground/50 sm:block">
                   {formatPris(p.pris)}
                 </div>
-                <div className="z-10 w-24 shrink-0 text-right text-sm font-bold tabular-nums text-accent">
+                <div className="z-10 w-24 shrink-0 text-right font-display text-sm font-bold tabular-nums text-accent">
                   {formatPris(Math.round(p.prisPerLiterRenAlkohol))}
                 </div>
               </Link>

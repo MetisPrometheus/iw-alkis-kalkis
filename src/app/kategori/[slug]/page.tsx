@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Toolbar } from "@/components/Toolbar";
 import { ProductCardGrid } from "@/components/ProductCardGrid";
 import { Paginator } from "@/components/Paginator";
+import { CategoryIcon } from "@/components/icons";
 import {
   filterProducts,
   getAllProducts,
@@ -10,6 +11,7 @@ import {
   sortProducts,
   type SortKey,
 } from "@/lib/products";
+import { median } from "@/lib/derive";
 import {
   getMainCategory,
   getSubCategory,
@@ -75,9 +77,19 @@ export default async function CategoryPage({ params, searchParams }: PageProps) 
   const page = Math.max(1, numParam(sp.page) ?? 1);
 
   const all = getAllProducts();
-  const filtered = filterProducts(all, {
+  // Median over the whole category scope (before user filters) so the
+  // per-card bars compare against a stable "snittet".
+  const scope = filterProducts(all, {
     hovedkategori: resolved.mainSlug,
     underkategori: resolved.kind === "sub" ? resolved.subSlug : undefined,
+  });
+  const medianPpra = median(
+    scope.filter((p) => p.prisPerLiterRenAlkohol > 0).map((p) => p.prisPerLiterRenAlkohol),
+  );
+  const medianPpl = median(
+    scope.filter((p) => p.prisPerLiter > 0).map((p) => p.prisPerLiter),
+  );
+  const filtered = filterProducts(scope, {
     land: land || undefined,
     query: q || undefined,
   });
@@ -111,11 +123,18 @@ export default async function CategoryPage({ params, searchParams }: PageProps) 
       </nav>
 
       <header className="space-y-2">
-        <h1 className="flex items-center gap-3 text-3xl font-bold sm:text-4xl">
-          <span aria-hidden>{mainCat?.emoji}</span>
+        <h1 className="flex items-center gap-3 text-fluid-title font-display font-bold">
+          {mainCat && (
+            <span
+              className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl ${mainCat.tint.bg} ${mainCat.tint.text}`}
+              aria-hidden
+            >
+              <CategoryIcon ikon={mainCat.ikon} className="h-6 w-6" />
+            </span>
+          )}
           {resolved.title}
         </h1>
-        <div className="text-sm text-foreground/70">
+        <div className="text-sm tabular-nums text-foreground/70">
           Viser {pageSlice.length === 0 ? 0 : pageStart + 1}–{pageStart + pageSlice.length} av{" "}
           {sorted.length.toLocaleString("nb-NO")}
         </div>
@@ -127,9 +146,10 @@ export default async function CategoryPage({ params, searchParams }: PageProps) 
             <Link
               key={sub.slug}
               href={`/kategori/${sub.slug}`}
-              className="rounded-full border border-foreground/15 px-3 py-1 text-sm hover:bg-accent hover:text-accent-foreground"
+              className={`tappable flex items-center gap-2 rounded-full ${mainCat.tint.bgSoft} border border-foreground/10 px-3.5 py-1.5 text-sm transition-colors hover:bg-accent hover:text-accent-foreground`}
             >
-              <span aria-hidden>{sub.emoji}</span> {sub.navn}
+              <span className={`h-1.5 w-1.5 rounded-full ${mainCat.tint.dot}`} aria-hidden />
+              {sub.navn}
             </Link>
           ))}
         </div>
@@ -137,7 +157,7 @@ export default async function CategoryPage({ params, searchParams }: PageProps) 
 
       <Toolbar countries={countries} />
 
-      <ProductCardGrid products={pageSlice} />
+      <ProductCardGrid products={pageSlice} medianPpra={medianPpra} medianPpl={medianPpl} />
 
       <Paginator currentPage={safePage} totalPages={totalPages} searchParams={sp} />
     </div>

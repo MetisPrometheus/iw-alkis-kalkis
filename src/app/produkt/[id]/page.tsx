@@ -7,7 +7,11 @@ import {
   sortProducts,
 } from "@/lib/products";
 import { getMainCategory, getSubCategory } from "@/lib/categories";
+import { median } from "@/lib/derive";
 import { formatAbv, formatPris, formatVolum } from "@/lib/format";
+import { AnimatedNumber } from "@/components/motion";
+import { MedianBar } from "@/components/MedianBar";
+import { BottleIcon } from "@/components/icons";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -46,6 +50,10 @@ export default async function ProductPage({ params }: PageProps) {
     "ppra",
   );
   const rankInSub = subPool.findIndex((p) => p.id === product.id) + 1;
+  const subMedianPpra = median(
+    subPool.filter((p) => p.prisPerLiterRenAlkohol > 0).map((p) => p.prisPerLiterRenAlkohol),
+  );
+  const ppra = Math.round(product.prisPerLiterRenAlkohol);
 
   return (
     <div className="space-y-8">
@@ -68,7 +76,11 @@ export default async function ProductPage({ params }: PageProps) {
       </nav>
 
       <div className="grid grid-cols-1 gap-8 md:grid-cols-[280px_1fr]">
-        <div className="flex h-80 items-center justify-center overflow-hidden rounded-2xl border border-foreground/10 bg-surface md:h-96">
+        <div
+          className={`flex h-80 items-center justify-center overflow-hidden rounded-2xl border border-foreground/10 shadow-card md:h-96 ${
+            mainCat?.tint.bg ?? "bg-surface"
+          }`}
+        >
           {product.bildeUrl ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
@@ -77,7 +89,7 @@ export default async function ProductPage({ params }: PageProps) {
               className="h-full w-auto object-contain p-6"
             />
           ) : (
-            <span className="text-7xl">🍾</span>
+            <BottleIcon className={`h-24 w-24 ${mainCat?.tint.text ?? "text-foreground/40"}`} />
           )}
         </div>
 
@@ -86,12 +98,18 @@ export default async function ProductPage({ params }: PageProps) {
             <p className="text-xs uppercase tracking-wider text-foreground/50">
               {subCat?.sub.navn ?? mainCat?.navn ?? "Produkt"}
               {rankInSub > 0 && (
-                <span className="ml-2 rounded-full bg-accent/10 px-2 py-0.5 text-accent">
+                <span
+                  className={`ml-2 rounded-full px-2 py-0.5 tabular-nums ${
+                    rankInSub === 1
+                      ? "bg-gold/15 font-semibold text-gold ring-1 ring-gold/40"
+                      : "bg-accent/10 text-accent"
+                  }`}
+                >
                   #{rankInSub} i {subCat?.sub.navn ?? "kategori"}
                 </span>
               )}
             </p>
-            <h1 className="mt-1 text-3xl font-bold sm:text-4xl">{product.navn}</h1>
+            <h1 className="mt-1 text-fluid-title font-display font-bold">{product.navn}</h1>
             <p className="mt-1 text-foreground/70">
               {[product.produsent, product.land, product.distrikt, product.argang]
                 .filter(Boolean)
@@ -103,12 +121,32 @@ export default async function ProductPage({ params }: PageProps) {
             <Stat label="Pris" value={formatPris(product.pris)} />
             <Stat label="Volum" value={formatVolum(product.volumLiter)} />
             <Stat label="Alkohol" value={formatAbv(product.alkoholProsent)} />
-            <Stat
-              label="Kr / l alc"
-              value={formatPris(Math.round(product.prisPerLiterRenAlkohol))}
-              highlight
-            />
+            <div className="rounded-2xl border border-foreground/10 bg-accent/10 p-3 shadow-card">
+              <div className="text-xs uppercase tracking-wide text-foreground/50">Kr / l alc</div>
+              <div className="font-display text-lg font-semibold tabular-nums text-accent">
+                {ppra > 0 ? (
+                  <>
+                    <AnimatedNumber value={ppra} /> kr
+                  </>
+                ) : (
+                  "—"
+                )}
+              </div>
+            </div>
           </div>
+
+          {ppra > 0 && subMedianPpra > 0 && (
+            <div className="rounded-2xl border border-foreground/10 bg-surface p-3 shadow-card">
+              <div className="mb-2 text-xs uppercase tracking-wide text-foreground/50">
+                Mot snittet i {subCat?.sub.navn.toLowerCase() ?? "kategorien"}
+              </div>
+              <MedianBar
+                value={ppra}
+                medianValue={subMedianPpra}
+                dotClass={mainCat?.tint.dot ?? "bg-accent"}
+              />
+            </div>
+          )}
 
           {product.smaknotater && (
             <Detail title="Smak">{product.smaknotater}</Detail>
@@ -127,14 +165,14 @@ export default async function ProductPage({ params }: PageProps) {
               href={product.vmpUrl}
               target="_blank"
               rel="noreferrer noopener"
-              className="rounded-full bg-accent px-5 py-2.5 text-sm font-semibold text-accent-foreground hover:opacity-90"
+              className="tappable rounded-full bg-accent px-5 py-2.5 text-sm font-semibold text-accent-foreground shadow-card transition-shadow hover:opacity-90 hover:shadow-card-lg"
             >
               Kjøp på Vinmonopolet ↗
             </a>
             {subCat && (
               <Link
                 href={`/kategori/${subCat.sub.slug}`}
-                className="rounded-full border border-foreground/15 px-5 py-2.5 text-sm hover:bg-surface-2"
+                className="tappable rounded-full border border-foreground/15 px-5 py-2.5 text-sm hover:bg-surface-2"
               >
                 Sammenlign {subCat.sub.navn.toLowerCase()}
               </Link>
@@ -146,32 +184,18 @@ export default async function ProductPage({ params }: PageProps) {
   );
 }
 
-function Stat({
-  label,
-  value,
-  highlight,
-}: {
-  label: string;
-  value: string;
-  highlight?: boolean;
-}) {
+function Stat({ label, value }: { label: string; value: string }) {
   return (
-    <div
-      className={`rounded-xl border border-foreground/10 p-3 ${
-        highlight ? "bg-accent/10" : "bg-surface"
-      }`}
-    >
+    <div className="rounded-2xl border border-foreground/10 bg-surface p-3 shadow-card">
       <div className="text-xs uppercase tracking-wide text-foreground/50">{label}</div>
-      <div className={`text-lg font-semibold tabular-nums ${highlight ? "text-accent" : ""}`}>
-        {value}
-      </div>
+      <div className="font-display text-lg font-semibold tabular-nums">{value}</div>
     </div>
   );
 }
 
 function Detail({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <div className="rounded-lg border border-foreground/5 bg-surface p-3">
+    <div className="rounded-xl border border-foreground/5 bg-surface p-3 shadow-card">
       <div className="text-xs uppercase tracking-wide text-foreground/50">{title}</div>
       <div className="mt-1 text-sm">{children}</div>
     </div>

@@ -10,14 +10,14 @@ export default function AboutPage() {
   const meta = getProductsMeta();
   return (
     <article className="prose prose-invert mx-auto max-w-2xl space-y-6 text-foreground">
-      <h1 className="text-3xl font-bold">Om alkis kalkis</h1>
+      <h1 className="text-fluid-title font-display font-bold">Om alkis kalkis</h1>
       <p className="text-foreground/80">
         En søkbar prisliste over Vinmonopolets sortiment, sortert etter <strong>pris per liter ren alkohol</strong>{" "}
         — den eneste ærlige målestokken på &quot;hvor mye alkohol får jeg for pengene&quot;.
       </p>
 
-      <h2 className="text-xl font-semibold">Hvordan regnes det?</h2>
-      <pre className="rounded-lg bg-surface-2 p-4 text-sm">
+      <h2 className="text-fluid-section font-display font-semibold">Hvordan regnes det?</h2>
+      <pre className="overflow-x-auto rounded-2xl border border-foreground/10 bg-surface-2 p-4 font-mono text-sm tabular-nums shadow-card">
         kr / l ren = pris ÷ (volum_liter × alkoholprosent ÷ 100)
       </pre>
       <p className="text-foreground/80">
@@ -26,7 +26,7 @@ export default function AboutPage() {
         Pilsen vinner — knepent.
       </p>
 
-      <h2 className="text-xl font-semibold">Datakilde</h2>
+      <h2 className="text-fluid-section font-display font-semibold">Datakilde</h2>
       <p className="text-foreground/80">
         Data hentes daglig fra{" "}
         <a className="underline" href="https://www.vinmonopolet.no/datadeling" target="_blank" rel="noreferrer">
@@ -42,14 +42,14 @@ export default function AboutPage() {
         </ul>
       )}
 
-      <h2 className="text-xl font-semibold">Drikk med måte</h2>
+      <h2 className="text-fluid-section font-display font-semibold">Drikk med måte</h2>
       <p className="text-foreground/80">
         Dette nettstedet er en pris-sammenligning, ikke en oppfordring til å bli full billig.
         Ring <a className="underline" href="tel:80031245">Hjelpelinjen 800 31 245</a> hvis alkohol skaper problemer.
       </p>
 
       <p className="pt-4">
-        <Link href="/" className="text-accent hover:underline">← Tilbake</Link>
+        <Link href="/" className="tappable inline-block text-accent hover:underline">← Tilbake</Link>
       </p>
     </article>
   );

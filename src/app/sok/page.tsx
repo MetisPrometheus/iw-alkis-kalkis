@@ -8,6 +8,7 @@ import {
   sortProducts,
   type SortKey,
 } from "@/lib/products";
+import { median } from "@/lib/derive";
 
 const PAGE_SIZE = 60;
 
@@ -33,6 +34,12 @@ export default async function SearchPage({ searchParams }: PageProps) {
     query: q || undefined,
   });
   const sorted = sortProducts(filtered, sort);
+  // Medians over the current result set so the per-card bars compare
+  // against "snittet" for what you're actually looking at.
+  const medianPpra = median(
+    sorted.filter((p) => p.prisPerLiterRenAlkohol > 0).map((p) => p.prisPerLiterRenAlkohol),
+  );
+  const medianPpl = median(sorted.filter((p) => p.prisPerLiter > 0).map((p) => p.prisPerLiter));
   const totalPages = Math.max(1, Math.ceil(sorted.length / PAGE_SIZE));
   const safePage = Math.min(page, totalPages);
   const pageStart = (safePage - 1) * PAGE_SIZE;
@@ -42,8 +49,8 @@ export default async function SearchPage({ searchParams }: PageProps) {
   return (
     <div className="space-y-6">
       <header className="space-y-2">
-        <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">Søk</h1>
-        <p className="text-foreground/70">
+        <h1 className="text-fluid-title font-display font-bold">Søk</h1>
+        <p className="tabular-nums text-foreground/70">
           {q
             ? `Søker etter «${q}» — ${sorted.length.toLocaleString("nb-NO")} treff`
             : `${sorted.length.toLocaleString("nb-NO")} av ${all.length.toLocaleString("nb-NO")} produkter`}
@@ -55,7 +62,7 @@ export default async function SearchPage({ searchParams }: PageProps) {
 
       <Toolbar countries={countries} />
 
-      <ProductCardGrid products={pageSlice} />
+      <ProductCardGrid products={pageSlice} medianPpra={medianPpra} medianPpl={medianPpl} />
 
       <Paginator
         currentPage={safePage}

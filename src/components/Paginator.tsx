@@ -33,16 +33,16 @@ export function Paginator({
   });
 
   return (
-    <nav className="flex flex-wrap items-center justify-center gap-1 pt-2 text-sm">
+    <nav className="flex flex-wrap items-center justify-center gap-1.5 pt-2 text-sm">
       {currentPage > 1 ? (
         <Link
           href={linkFor(currentPage - 1)}
-          className="rounded-md border border-foreground/15 px-3 py-1.5 hover:bg-surface-2"
+          className="tappable rounded-full border border-foreground/15 bg-surface px-3.5 py-1.5 shadow-card hover:bg-surface-2"
         >
           ← Forrige
         </Link>
       ) : (
-        <span className="rounded-md border border-foreground/10 px-3 py-1.5 text-foreground/30">
+        <span className="rounded-full border border-foreground/10 px-3.5 py-1.5 text-foreground/30">
           ← Forrige
         </span>
       )}
@@ -53,7 +53,7 @@ export function Paginator({
           <span
             key={it}
             aria-current="page"
-            className="rounded-md bg-foreground px-3 py-1.5 font-semibold text-background"
+            className="rounded-full bg-foreground px-3.5 py-1.5 font-semibold tabular-nums text-background shadow-card"
           >
             {it}
           </span>
@@ -61,7 +61,7 @@ export function Paginator({
           <Link
             key={it}
             href={linkFor(it)}
-            className="rounded-md border border-foreground/15 px-3 py-1.5 hover:bg-surface-2"
+            className="tappable rounded-full border border-foreground/15 bg-surface px-3.5 py-1.5 tabular-nums shadow-card hover:bg-surface-2"
           >
             {it}
           </Link>
@@ -70,12 +70,12 @@ export function Paginator({
       {currentPage < totalPages ? (
         <Link
           href={linkFor(currentPage + 1)}
-          className="rounded-md border border-foreground/15 px-3 py-1.5 hover:bg-surface-2"
+          className="tappable rounded-full border border-foreground/15 bg-surface px-3.5 py-1.5 shadow-card hover:bg-surface-2"
         >
           Neste →
         </Link>
       ) : (
-        <span className="rounded-md border border-foreground/10 px-3 py-1.5 text-foreground/30">
+        <span className="rounded-full border border-foreground/10 px-3.5 py-1.5 text-foreground/30">
           Neste →
         </span>
       )}
