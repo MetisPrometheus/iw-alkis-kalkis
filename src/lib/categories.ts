@@ -12,6 +12,8 @@ export interface CategoryTint {
   bg: string;
   /** Softer wash for whole-card backgrounds. */
   bgSoft: string;
+  /** Full pastel gradient for color-block cards (category grid). */
+  card: string;
   /** Matching ink tone for icons/text on the pastel. */
   text: string;
   /** Small solid dot marker. */
@@ -41,6 +43,7 @@ export const KATEGORI_TRE: CategoryNode[] = [
     tint: {
       bg: "bg-tint-ol",
       bgSoft: "bg-tint-ol/45",
+      card: "bg-gradient-to-r from-tint-ol to-tint-ol/45",
       text: "text-tone-ol",
       dot: "bg-tone-ol",
     },
@@ -61,6 +64,7 @@ export const KATEGORI_TRE: CategoryNode[] = [
     tint: {
       bg: "bg-tint-vin",
       bgSoft: "bg-tint-vin/45",
+      card: "bg-gradient-to-r from-tint-vin to-tint-vin/45",
       text: "text-tone-vin",
       dot: "bg-tone-vin",
     },
@@ -82,6 +86,7 @@ export const KATEGORI_TRE: CategoryNode[] = [
     tint: {
       bg: "bg-tint-brennevin",
       bgSoft: "bg-tint-brennevin/45",
+      card: "bg-gradient-to-r from-tint-brennevin to-tint-brennevin/45",
       text: "text-tone-brennevin",
       dot: "bg-tone-brennevin",
     },
@@ -105,6 +110,7 @@ export const KATEGORI_TRE: CategoryNode[] = [
     tint: {
       bg: "bg-tint-sider",
       bgSoft: "bg-tint-sider/45",
+      card: "bg-gradient-to-r from-tint-sider to-tint-sider/45",
       text: "text-tone-sider",
       dot: "bg-tone-sider",
     },
@@ -121,6 +127,7 @@ export const KATEGORI_TRE: CategoryNode[] = [
     tint: {
       bg: "bg-tint-annet",
       bgSoft: "bg-tint-annet/45",
+      card: "bg-gradient-to-r from-tint-annet to-tint-annet/45",
       text: "text-tone-annet",
       dot: "bg-tone-annet",
     },

@@ -11,6 +11,7 @@ export type DealTone = "alc" | "free";
 const DEFAULT_TINT: CategoryTint = {
   bg: "bg-surface-2",
   bgSoft: "bg-surface-2/45",
+  card: "bg-gradient-to-r from-surface-2 to-surface-2/45",
   text: "text-foreground/60",
   dot: "bg-foreground/60",
 };

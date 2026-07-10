@@ -21,7 +21,7 @@ export function CategoryGrid({ counts }: { counts?: Record<string, number> }) {
             whileHover={reduce ? undefined : { y: -3 }}
             whileTap={reduce ? undefined : { scale: 0.985 }}
             transition={SPRING}
-            className={`rounded-2xl border border-foreground/10 ${kat.tint.bgSoft} shadow-card transition-shadow hover:shadow-card-lg`}
+            className={`rounded-2xl border border-black/5 ${kat.tint.card} shadow-card transition-shadow hover:shadow-card-lg`}
           >
             <button
               type="button"
@@ -30,15 +30,15 @@ export function CategoryGrid({ counts }: { counts?: Record<string, number> }) {
               className="flex w-full items-center gap-4 p-5 text-left"
             >
               <span
-                className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl ${kat.tint.bg} ${kat.tint.text}`}
+                className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-white/70 ${kat.tint.text}`}
                 aria-hidden
               >
                 <CategoryIcon ikon={kat.ikon} className="h-7 w-7" />
               </span>
               <div className="min-w-0 flex-1">
                 <div className="flex items-baseline justify-between gap-2">
-                  <h3 className="text-lg font-semibold">{kat.navn}</h3>
-                  <span className="text-xs tabular-nums text-foreground/50">
+                  <h3 className="whitespace-nowrap text-lg font-semibold">{kat.navn}</h3>
+                  <span className="shrink-0 whitespace-nowrap text-[11px] tabular-nums text-foreground/55 sm:text-xs">
                     {counts?.[kat.slug] != null
                       ? `${counts[kat.slug].toLocaleString("nb-NO")} produkter · `
                       : ""}
@@ -77,7 +77,7 @@ export function CategoryGrid({ counts }: { counts?: Record<string, number> }) {
                       <Link
                         key={sub.slug}
                         href={`/kategori/${sub.slug}`}
-                        className={`tappable flex items-center gap-2 rounded-lg ${kat.tint.bg} px-3 py-2 text-sm transition-colors hover:bg-accent hover:text-accent-foreground`}
+                        className="tappable flex items-center gap-2 rounded-lg bg-white/60 px-3 py-2 text-sm transition-colors hover:bg-accent hover:text-accent-foreground"
                       >
                         <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${kat.tint.dot}`} aria-hidden />
                         <span>{sub.navn}</span>
