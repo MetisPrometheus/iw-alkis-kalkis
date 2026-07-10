@@ -1,89 +1,131 @@
 import type { MainCategorySlug, SubCategorySlug } from "./types";
 
+/** Icon key rendered by CategoryIcon in src/components/icons.tsx. */
+export type CategoryIkon = "beer" | "wine" | "spirits" | "cider" | "drop";
+
+/**
+ * Pastel tint classes per category. Literal Tailwind class strings so the
+ * content scanner picks them up; the underlying colors live in globals.css.
+ */
+export interface CategoryTint {
+  /** Solid pastel surface — image plinths, icon squares. */
+  bg: string;
+  /** Softer wash for whole-card backgrounds. */
+  bgSoft: string;
+  /** Matching ink tone for icons/text on the pastel. */
+  text: string;
+  /** Small solid dot marker. */
+  dot: string;
+}
+
 export interface CategoryNode {
   slug: MainCategorySlug;
   navn: string;
-  emoji: string;
+  ikon: CategoryIkon;
   beskrivelse: string;
-  bgClass: string;
+  tint: CategoryTint;
   underkategorier: SubCategoryNode[];
 }
 
 export interface SubCategoryNode {
   slug: SubCategorySlug;
   navn: string;
-  emoji: string;
 }
 
 export const KATEGORI_TRE: CategoryNode[] = [
   {
     slug: "ol",
     navn: "Øl",
-    emoji: "🍺",
+    ikon: "beer",
     beskrivelse: "Pils, IPA, stout og resten",
-    bgClass: "from-amber-500/20 to-yellow-600/10",
+    tint: {
+      bg: "bg-tint-ol",
+      bgSoft: "bg-tint-ol/45",
+      text: "text-tone-ol",
+      dot: "bg-tone-ol",
+    },
     underkategorier: [
-      { slug: "lager", navn: "Lager / Pils", emoji: "🍻" },
-      { slug: "ipa", navn: "IPA", emoji: "🌿" },
-      { slug: "ale", navn: "Ale", emoji: "🍺" },
-      { slug: "stout", navn: "Stout / Porter", emoji: "🖤" },
-      { slug: "hveteol", navn: "Hveteøl", emoji: "🌾" },
-      { slug: "annet-ol", navn: "Annet øl", emoji: "🍶" },
+      { slug: "lager", navn: "Lager / Pils" },
+      { slug: "ipa", navn: "IPA" },
+      { slug: "ale", navn: "Ale" },
+      { slug: "stout", navn: "Stout / Porter" },
+      { slug: "hveteol", navn: "Hveteøl" },
+      { slug: "annet-ol", navn: "Annet øl" },
     ],
   },
   {
     slug: "vin",
     navn: "Vin",
-    emoji: "🍷",
+    ikon: "wine",
     beskrivelse: "Rødt, hvitt, rosé, bobler",
-    bgClass: "from-rose-700/20 to-purple-700/10",
+    tint: {
+      bg: "bg-tint-vin",
+      bgSoft: "bg-tint-vin/45",
+      text: "text-tone-vin",
+      dot: "bg-tone-vin",
+    },
     underkategorier: [
-      { slug: "rodvin", navn: "Rødvin", emoji: "🍷" },
-      { slug: "hvitvin", navn: "Hvitvin", emoji: "🥂" },
-      { slug: "rosevin", navn: "Rosévin", emoji: "🌸" },
-      { slug: "musserende", navn: "Musserende", emoji: "🍾" },
-      { slug: "sterkvin", navn: "Sterkvin", emoji: "🍯" },
-      { slug: "dessertvin", navn: "Dessertvin", emoji: "🍮" },
-      { slug: "fruktvin", navn: "Fruktvin", emoji: "🍓" },
+      { slug: "rodvin", navn: "Rødvin" },
+      { slug: "hvitvin", navn: "Hvitvin" },
+      { slug: "rosevin", navn: "Rosévin" },
+      { slug: "musserende", navn: "Musserende" },
+      { slug: "sterkvin", navn: "Sterkvin" },
+      { slug: "dessertvin", navn: "Dessertvin" },
+      { slug: "fruktvin", navn: "Fruktvin" },
     ],
   },
   {
     slug: "brennevin",
     navn: "Brennevin",
-    emoji: "🥃",
+    ikon: "spirits",
     beskrivelse: "Gin, whisky, vodka, akevitt",
-    bgClass: "from-emerald-700/20 to-teal-700/10",
+    tint: {
+      bg: "bg-tint-brennevin",
+      bgSoft: "bg-tint-brennevin/45",
+      text: "text-tone-brennevin",
+      dot: "bg-tone-brennevin",
+    },
     underkategorier: [
-      { slug: "gin", navn: "Gin", emoji: "🌲" },
-      { slug: "vodka", navn: "Vodka", emoji: "❄️" },
-      { slug: "whisky", navn: "Whisky", emoji: "🥃" },
-      { slug: "rom", navn: "Rom", emoji: "🏝️" },
-      { slug: "akevitt", navn: "Akevitt", emoji: "🇳🇴" },
-      { slug: "cognac", navn: "Cognac & Brandy", emoji: "🍂" },
-      { slug: "likor", navn: "Likør", emoji: "🍫" },
-      { slug: "tequila", navn: "Tequila & Mezcal", emoji: "🌵" },
-      { slug: "annet-brennevin", navn: "Annet brennevin", emoji: "🍶" },
+      { slug: "gin", navn: "Gin" },
+      { slug: "vodka", navn: "Vodka" },
+      { slug: "whisky", navn: "Whisky" },
+      { slug: "rom", navn: "Rom" },
+      { slug: "akevitt", navn: "Akevitt" },
+      { slug: "cognac", navn: "Cognac & Brandy" },
+      { slug: "likor", navn: "Likør" },
+      { slug: "tequila", navn: "Tequila & Mezcal" },
+      { slug: "annet-brennevin", navn: "Annet brennevin" },
     ],
   },
   {
     slug: "sider",
     navn: "Sider & Mjød",
-    emoji: "🍏",
+    ikon: "cider",
     beskrivelse: "Eple, pære, bjørk",
-    bgClass: "from-lime-600/20 to-green-700/10",
+    tint: {
+      bg: "bg-tint-sider",
+      bgSoft: "bg-tint-sider/45",
+      text: "text-tone-sider",
+      dot: "bg-tone-sider",
+    },
     underkategorier: [
-      { slug: "sider-tor", navn: "Tørr sider", emoji: "🍏" },
-      { slug: "sider-sot", navn: "Søt sider", emoji: "🍎" },
+      { slug: "sider-tor", navn: "Tørr sider" },
+      { slug: "sider-sot", navn: "Søt sider" },
     ],
   },
   {
     slug: "annet",
     navn: "Alkoholfritt",
-    emoji: "💧",
+    ikon: "drop",
     beskrivelse: "Null promille, samme stil",
-    bgClass: "from-sky-600/20 to-blue-700/10",
+    tint: {
+      bg: "bg-tint-annet",
+      bgSoft: "bg-tint-annet/45",
+      text: "text-tone-annet",
+      dot: "bg-tone-annet",
+    },
     underkategorier: [
-      { slug: "alkoholfritt", navn: "Alkoholfritt", emoji: "💧" },
+      { slug: "alkoholfritt", navn: "Alkoholfritt" },
     ],
   },
 ];

@@ -91,10 +91,18 @@ export default function Image() {
             opacity: 0.6,
           }}
         >
-          <span>🍻</span>
-          <span>🍷</span>
-          <span>🥃</span>
-          <span>🍏</span>
+          {["#ffe8d2", "#ffdfe7", "#f0e3cd", "#d9f2df", "#dcedfb"].map((c) => (
+            <div
+              key={c}
+              style={{
+                width: "36px",
+                height: "36px",
+                borderRadius: "12px",
+                background: c,
+                border: "1px solid rgba(22,21,19,0.12)",
+              }}
+            />
+          ))}
           <span style={{ marginLeft: "auto", fontWeight: 600 }}>
             alkis-kalkis
           </span>
