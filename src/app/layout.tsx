@@ -1,12 +1,12 @@
 import type { Metadata, Viewport } from "next";
-import { Instrument_Sans, Space_Grotesk } from "next/font/google";
+import { Geist, Space_Grotesk } from "next/font/google";
 import Link from "next/link";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
 import { SearchIcon } from "@/components/icons";
 import "./globals.css";
 
-const instrumentSans = Instrument_Sans({
-  variable: "--font-instrument-sans",
+const geistSans = Geist({
+  variable: "--font-geist-sans",
   subsets: ["latin"],
 });
 
@@ -47,12 +47,12 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="nb">
-      <body className={`${instrumentSans.variable} ${spaceGrotesk.variable} antialiased min-h-screen bg-background font-sans text-foreground`}>
+      <body className={`${geistSans.variable} ${spaceGrotesk.variable} antialiased min-h-screen bg-background font-sans text-foreground`}>
         <NuqsAdapter>
           <header className="sticky top-0 z-30 border-b border-foreground/10 bg-white/70 backdrop-blur-md supports-[backdrop-filter]:bg-white/60">
             <div className="mx-auto flex max-w-6xl items-center gap-3 px-4 py-3 sm:gap-6">
               <Link href="/" className="tappable flex shrink-0 items-baseline gap-2 tracking-tight">
-                <span className="font-display text-xl font-bold">
+                <span className="text-xl font-semibold">
                   alkis <span className="text-accent">kalkis</span>
                 </span>
                 <span className="hidden text-xs text-foreground/50 sm:inline">finn promille</span>

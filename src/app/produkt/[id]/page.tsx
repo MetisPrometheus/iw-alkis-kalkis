@@ -109,7 +109,7 @@ export default async function ProductPage({ params }: PageProps) {
                 </span>
               )}
             </p>
-            <h1 className="mt-1 text-fluid-title font-display font-bold">{product.navn}</h1>
+            <h1 className="mt-1 text-fluid-title font-bold">{product.navn}</h1>
             <p className="mt-1 text-foreground/70">
               {[product.produsent, product.land, product.distrikt, product.argang]
                 .filter(Boolean)

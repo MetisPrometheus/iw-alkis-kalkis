@@ -3,7 +3,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { KATEGORI_TRE } from "@/lib/categories";
-import { CategoryIcon, ChevronDownIcon } from "@/components/icons";
+import { ChevronDownIcon } from "@/components/icons";
 
 const SPRING = { type: "spring", stiffness: 380, damping: 30 } as const;
 
@@ -30,10 +30,10 @@ export function CategoryGrid({ counts }: { counts?: Record<string, number> }) {
               className="flex w-full items-center gap-4 p-5 text-left"
             >
               <span
-                className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-white/70 ${kat.tint.text}`}
+                className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-white/70 text-3xl"
                 aria-hidden
               >
-                <CategoryIcon ikon={kat.ikon} className="h-7 w-7" />
+                {kat.emoji}
               </span>
               <div className="min-w-0 flex-1">
                 <div className="flex items-baseline justify-between gap-2">

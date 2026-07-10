@@ -42,7 +42,7 @@ export default function Home() {
   return (
     <div className="space-y-8 sm:space-y-12">
       <section className="space-y-3">
-        <h1 className="text-fluid-display font-display font-bold">
+        <h1 className="text-fluid-display font-bold">
           Hva gir mest <span className="text-accent">promille</span> per krone i dag?
         </h1>
         <p className="max-w-2xl text-sm text-foreground/70">
@@ -50,7 +50,7 @@ export default function Home() {
           <AnimatedNumber
             value={meta.count}
             duration={1.4}
-            className="font-display text-base font-bold text-foreground"
+            className="text-base font-bold text-foreground"
           />{" "}
           produkter, sortert etter pris per liter ren alkohol — den eneste
           statistikken som teller.
@@ -64,12 +64,12 @@ export default function Home() {
       </section>
 
       <section className="space-y-4">
-        <h2 className="text-fluid-section font-display font-semibold">Bla etter kategori</h2>
+        <h2 className="text-fluid-section font-semibold">Bla etter kategori</h2>
         <CategoryGrid counts={counts} />
       </section>
 
       <section className="space-y-6">
-        <h2 className="text-fluid-section font-display font-semibold">Beste i hver kategori</h2>
+        <h2 className="text-fluid-section font-semibold">Beste i hver kategori</h2>
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
           {perCategory.map(({ kat, tone, medianValue, deals }) => (
             <div key={kat.slug} className="space-y-2">

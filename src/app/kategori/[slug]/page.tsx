@@ -123,7 +123,7 @@ export default async function CategoryPage({ params, searchParams }: PageProps) 
       </nav>
 
       <header className="space-y-2">
-        <h1 className="flex items-center gap-3 text-fluid-title font-display font-bold">
+        <h1 className="flex items-center gap-3 text-fluid-title font-bold">
           {mainCat && (
             <span
               className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl ${mainCat.tint.bg} ${mainCat.tint.text}`}

@@ -49,7 +49,7 @@ export default async function SearchPage({ searchParams }: PageProps) {
   return (
     <div className="space-y-6">
       <header className="space-y-2">
-        <h1 className="text-fluid-title font-display font-bold">Søk</h1>
+        <h1 className="text-fluid-title font-bold">Søk</h1>
         <p className="tabular-nums text-foreground/70">
           {q
             ? `Søker etter «${q}» — ${sorted.length.toLocaleString("nb-NO")} treff`

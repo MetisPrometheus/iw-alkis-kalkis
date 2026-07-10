@@ -24,6 +24,8 @@ export interface CategoryNode {
   slug: MainCategorySlug;
   navn: string;
   ikon: CategoryIkon;
+  /** Original emoji shown on the top-level category cards. */
+  emoji: string;
   beskrivelse: string;
   tint: CategoryTint;
   underkategorier: SubCategoryNode[];
@@ -39,6 +41,7 @@ export const KATEGORI_TRE: CategoryNode[] = [
     slug: "ol",
     navn: "Øl",
     ikon: "beer",
+    emoji: "🍺",
     beskrivelse: "Pils, IPA, stout og resten",
     tint: {
       bg: "bg-tint-ol",
@@ -60,6 +63,7 @@ export const KATEGORI_TRE: CategoryNode[] = [
     slug: "vin",
     navn: "Vin",
     ikon: "wine",
+    emoji: "🍷",
     beskrivelse: "Rødt, hvitt, rosé, bobler",
     tint: {
       bg: "bg-tint-vin",
@@ -82,6 +86,7 @@ export const KATEGORI_TRE: CategoryNode[] = [
     slug: "brennevin",
     navn: "Brennevin",
     ikon: "spirits",
+    emoji: "🥃",
     beskrivelse: "Gin, whisky, vodka, akevitt",
     tint: {
       bg: "bg-tint-brennevin",
@@ -106,6 +111,7 @@ export const KATEGORI_TRE: CategoryNode[] = [
     slug: "sider",
     navn: "Sider & Mjød",
     ikon: "cider",
+    emoji: "🍏",
     beskrivelse: "Eple, pære, bjørk",
     tint: {
       bg: "bg-tint-sider",
@@ -123,6 +129,7 @@ export const KATEGORI_TRE: CategoryNode[] = [
     slug: "annet",
     navn: "Alkoholfritt",
     ikon: "drop",
+    emoji: "💧",
     beskrivelse: "Null promille, samme stil",
     tint: {
       bg: "bg-tint-annet",

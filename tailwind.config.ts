@@ -25,8 +25,8 @@ const config: Config = {
         "tone-annet": "var(--tone-annet)",
       },
       fontFamily: {
-        sans: ["var(--font-instrument-sans)", "system-ui", "sans-serif"],
-        display: ["var(--font-space-grotesk)", "var(--font-instrument-sans)", "sans-serif"],
+        sans: ["var(--font-geist-sans)", "system-ui", "sans-serif"],
+        display: ["var(--font-space-grotesk)", "var(--font-geist-sans)", "sans-serif"],
         mono: ["ui-monospace", "SFMono-Regular", "Menlo", "monospace"],
       },
       boxShadow: {
