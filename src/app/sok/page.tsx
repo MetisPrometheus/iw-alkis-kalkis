@@ -17,7 +17,7 @@ interface PageProps {
 }
 
 export const metadata = {
-  title: "Søk — alkis kalkis",
+  title: "Søk · alkis kalkis",
   description: "Søk i hele Vinmonopolet-utvalget.",
 };
 
@@ -52,7 +52,7 @@ export default async function SearchPage({ searchParams }: PageProps) {
         <h1 className="text-fluid-title font-bold">Søk</h1>
         <p className="tabular-nums text-foreground/70">
           {q
-            ? `Søker etter «${q}» — ${sorted.length.toLocaleString("nb-NO")} treff`
+            ? `Søker etter «${q}» · ${sorted.length.toLocaleString("nb-NO")} treff`
             : `${sorted.length.toLocaleString("nb-NO")} av ${all.length.toLocaleString("nb-NO")} produkter`}
           {totalPages > 1 && pageSlice.length > 0 && (
             <> · viser {pageStart + 1}–{pageStart + pageSlice.length}</>

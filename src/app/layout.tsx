@@ -16,7 +16,7 @@ const spaceGrotesk = Space_Grotesk({
   weight: ["500", "700"],
 });
 
-const SITE_TITLE = "alkis kalkis — finn billigste promille på Polet";
+const SITE_TITLE = "alkis kalkis · finn billigste promille på Polet";
 const SITE_DESC =
   "Sammenlign Vinmonopolets utvalg etter pris per liter ren alkohol. Best deal-radar, kategoriknappene og mer.";
 
@@ -55,7 +55,7 @@ export default function RootLayout({
                 <span className="text-xl font-semibold">
                   alkis <span className="text-accent">kalkis</span>
                 </span>
-                <span className="hidden text-xs text-foreground/50 sm:inline">finn promille</span>
+                <span className="whitespace-nowrap text-xs text-foreground/50">finn promille</span>
               </Link>
               <form action="/sok" className="relative min-w-0 flex-1 sm:max-w-xs sm:ml-auto">
                 <SearchIcon className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-foreground/40" />

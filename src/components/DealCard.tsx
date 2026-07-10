@@ -98,7 +98,7 @@ export function DealCard({
             {product.navn}
           </div>
           <div className="truncate text-[11px] text-foreground/60">
-            {product.land ?? "—"} · {formatAbv(product.alkoholProsent)}
+            {product.land ?? "-"} · {formatAbv(product.alkoholProsent)}
           </div>
           <div className="mt-auto space-y-1.5 pt-1">
             <div className="flex items-baseline justify-between">
@@ -135,7 +135,7 @@ export function DealCard({
         <div className="min-w-0 flex-1">
           <div className="truncate text-sm font-semibold">{product.navn}</div>
           <div className="text-xs text-foreground/60">
-            {product.land ?? "—"} · {product.produsent ?? "—"}
+            {product.land ?? "-"} · {product.produsent ?? "-"}
           </div>
           <div className="mt-2 flex flex-wrap items-baseline gap-x-3 gap-y-1 text-xs tabular-nums text-foreground/70">
             <span>{formatVolum(product.volumLiter)}</span>

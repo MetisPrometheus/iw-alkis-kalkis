@@ -42,7 +42,7 @@ export function ProductTable({ products }: { products: Product[] }) {
               <td className="px-4 py-3 text-right font-display tabular-nums font-semibold text-accent">
                 {formatPris(Math.round(p.prisPerLiterRenAlkohol))}
               </td>
-              <td className="px-4 py-3 text-foreground/70">{p.land ?? "—"}</td>
+              <td className="px-4 py-3 text-foreground/70">{p.land ?? "-"}</td>
             </tr>
           ))}
           {products.length === 0 && (

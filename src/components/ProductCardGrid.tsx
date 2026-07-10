@@ -57,7 +57,7 @@ export function ProductCardGrid({
               <div className="mt-3 flex flex-1 flex-col">
                 <h3 className="line-clamp-2 text-sm font-semibold leading-tight">{p.navn}</h3>
                 <p className="mt-0.5 text-xs text-foreground/50">
-                  {p.land ?? "—"} · {formatVolum(p.volumLiter)} · {formatAbv(p.alkoholProsent)}
+                  {p.land ?? "-"} · {formatVolum(p.volumLiter)} · {formatAbv(p.alkoholProsent)}
                 </p>
                 <div className="mt-auto space-y-2 pt-3">
                   <div className="flex items-baseline justify-between">

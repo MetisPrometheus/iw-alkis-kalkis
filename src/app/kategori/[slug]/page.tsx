@@ -36,7 +36,7 @@ export async function generateMetadata({ params }: PageProps) {
   const resolved = resolveSlug(slug);
   if (!resolved) return { title: "Ikke funnet" };
   return {
-    title: `${resolved.title} — alkis kalkis`,
+    title: `${resolved.title} · alkis kalkis`,
     description: `Bla og sortér ${resolved.title.toLowerCase()} etter pris per liter ren alkohol.`,
   };
 }

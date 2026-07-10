@@ -30,8 +30,8 @@ export async function generateMetadata({ params }: PageProps) {
   const p = getProductById(id);
   if (!p) return { title: "Ikke funnet" };
   return {
-    title: `${p.navn} — alkis kalkis`,
-    description: `${p.navn} fra ${p.produsent ?? "ukjent"} — ${formatPris(p.pris)}, ${formatAbv(p.alkoholProsent)}.`,
+    title: `${p.navn} · alkis kalkis`,
+    description: `${p.navn} fra ${p.produsent ?? "ukjent"} · ${formatPris(p.pris)}, ${formatAbv(p.alkoholProsent)}.`,
   };
 }
 
@@ -113,7 +113,7 @@ export default async function ProductPage({ params }: PageProps) {
             <p className="mt-1 text-foreground/70">
               {[product.produsent, product.land, product.distrikt, product.argang]
                 .filter(Boolean)
-                .join(" · ") || "—"}
+                .join(" · ") || "-"}
             </p>
           </div>
 
@@ -129,7 +129,7 @@ export default async function ProductPage({ params }: PageProps) {
                     <AnimatedNumber value={ppra} /> kr
                   </>
                 ) : (
-                  "—"
+                  "-"
                 )}
               </div>
             </div>

@@ -2,7 +2,7 @@ import Link from "next/link";
 import { getProductsMeta } from "@/lib/products";
 
 export const metadata = {
-  title: "Om — alkis kalkis",
+  title: "Om · alkis kalkis",
   description: "Hva er alkis kalkis, hvor kommer dataene fra, hvordan regnes pris per liter ren alkohol?",
 };
 
@@ -12,8 +12,7 @@ export default function AboutPage() {
     <article className="prose prose-invert mx-auto max-w-2xl space-y-6 text-foreground">
       <h1 className="text-fluid-title font-bold">Om alkis kalkis</h1>
       <p className="text-foreground/80">
-        En søkbar prisliste over Vinmonopolets sortiment, sortert etter <strong>pris per liter ren alkohol</strong>{" "}
-        — den eneste ærlige målestokken på &quot;hvor mye alkohol får jeg for pengene&quot;.
+        En søkbar prisliste over Vinmonopolets sortiment, sortert etter <strong>pris per liter ren alkohol</strong>.
       </p>
 
       <h2 className="text-fluid-section font-semibold">Hvordan regnes det?</h2>
@@ -23,7 +22,7 @@ export default function AboutPage() {
       <p className="text-foreground/80">
         En 0,7-liters whisky til 500 kr med 40 % alk gir: 500 / (0,7 × 0,40) = ca. 1786 kr/l ren.
         Sammenlign det med en 0,5-liter pils til 40 kr og 4,7 % alk: 40 / (0,5 × 0,047) = ca. 1702 kr/l ren.
-        Pilsen vinner — knepent.
+        Pilsen vinner, knepent.
       </p>
 
       <h2 className="text-fluid-section font-semibold">Datakilde</h2>

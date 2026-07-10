@@ -1,7 +1,7 @@
 import { ImageResponse } from "next/og";
 import { getProductsMeta } from "@/lib/products";
 
-export const alt = "alkis kalkis — finn billigste promille på Polet";
+export const alt = "alkis kalkis · finn billigste promille på Polet";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 

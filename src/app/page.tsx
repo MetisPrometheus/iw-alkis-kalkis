@@ -52,8 +52,7 @@ export default function Home() {
             duration={1.4}
             className="text-base font-bold text-foreground"
           />{" "}
-          produkter, sortert etter pris per liter ren alkohol — den eneste
-          statistikken som teller.
+          produkter, sortert etter pris per liter ren alkohol.
         </p>
         {meta.source !== "vmp-live" && (
           <p className="flex items-center gap-2 rounded-xl border border-amber-500/20 bg-amber-500/5 px-3 py-2 text-xs text-amber-700">

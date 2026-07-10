@@ -42,7 +42,7 @@ export function DealRadar({ products }: { products: Product[] }) {
                 <div className="z-10 min-w-0 flex-1">
                   <div className="truncate text-sm font-medium">{p.navn}</div>
                   <div className="truncate text-xs text-foreground/50">
-                    {p.land ?? "—"} · {formatVolum(p.volumLiter)} · {formatAbv(p.alkoholProsent)}
+                    {p.land ?? "-"} · {formatVolum(p.volumLiter)} · {formatAbv(p.alkoholProsent)}
                   </div>
                 </div>
                 <div className="z-10 hidden text-right text-xs text-foreground/50 sm:block">
