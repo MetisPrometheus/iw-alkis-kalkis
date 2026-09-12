@@ -21,6 +21,7 @@ const SITE_DESC =
   "Sammenlign Vinmonopolets utvalg etter pris per liter ren alkohol. Best deal-radar, kategoriknappene og mer.";
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://alkiskalkis.com"),
   title: SITE_TITLE,
   description: SITE_DESC,
   openGraph: {
@@ -48,6 +49,20 @@ export default function RootLayout({
   return (
     <html lang="nb">
       <body className={`${geistSans.variable} ${spaceGrotesk.variable} antialiased min-h-screen bg-background font-sans text-foreground`}>
+        {/* WebSite structured data so Google shows the site name instead of
+            the bare domain in search results. */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "WebSite",
+              name: "alkis kalkis",
+              alternateName: "alkiskalkis.com",
+              url: "https://alkiskalkis.com",
+            }),
+          }}
+        />
         <NuqsAdapter>
           <header className="sticky top-0 z-30 border-b border-foreground/10 bg-white/70 backdrop-blur-md supports-[backdrop-filter]:bg-white/60">
             <div className="mx-auto flex max-w-6xl items-center gap-3 px-4 py-3 sm:gap-6">
