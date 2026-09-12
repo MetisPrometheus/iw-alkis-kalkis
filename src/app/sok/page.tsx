@@ -19,6 +19,9 @@ interface PageProps {
 export const metadata = {
   title: "Søk · alkis kalkis",
   description: "Søk i hele Vinmonopolet-utvalget.",
+  // Belt and braces with robots.txt: /sok has unbounded query-string
+  // variants and must never enter an index.
+  robots: { index: false, follow: true },
 };
 
 export default async function SearchPage({ searchParams }: PageProps) {
