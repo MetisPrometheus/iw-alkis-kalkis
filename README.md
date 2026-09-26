@@ -72,11 +72,6 @@ kr / l ren alkohol = pris ÷ (volum_liter × alkoholprosent ÷ 100)
 
 Drikk med måte.
 
----
-
 ## Redesign previews
 
-Experimental redesign variants on unmerged `claude/redesign-*` branches (built 2026-07-04). Previews are Vercel **preview** deployments — open logged in to Vercel as MetisPrometheus. Full QA review lives in the private `iw-web-agency` repo.
-
-- **Nordic Bodega Brutalism** — `claude/redesign-alkis-bodega` — QA: ok — https://alkiskalkis-91ne4ksdk-metisprometheus-projects.vercel.app
-- **Wine Cellar Luxe** — `claude/redesign-alkis-cellar` — QA: minor (kr/l copy bug) — https://alkiskalkis-i9ohf99wq-metisprometheus-projects.vercel.app
+Redesign experiments (2026-07-04) ran on `claude/redesign-*` branches that have since been deleted. The QA review lives in the private `iw-web-agency` repo.
