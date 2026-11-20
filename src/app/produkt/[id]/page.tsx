@@ -1,13 +1,7 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import {
-  filterProducts,
-  getAllProducts,
-  getProductById,
-  sortProducts,
-} from "@/lib/products";
+import { getProductById, getRankInSubcategory, getScope } from "@/lib/products";
 import { getMainCategory, getSubCategory } from "@/lib/categories";
-import { median } from "@/lib/derive";
 import { formatAbv, formatPris, formatVolum } from "@/lib/format";
 import { AnimatedNumber } from "@/components/motion";
 import { MedianBar } from "@/components/MedianBar";
@@ -43,16 +37,9 @@ export default async function ProductPage({ params }: PageProps) {
   const mainCat = getMainCategory(product.hovedkategori);
   const subCat = getSubCategory(product.underkategori);
 
-  const subPool = sortProducts(
-    filterProducts(getAllProducts(), {
-      underkategori: product.underkategori,
-    }),
-    "ppra",
-  );
-  const rankInSub = subPool.findIndex((p) => p.id === product.id) + 1;
-  const subMedianPpra = median(
-    subPool.filter((p) => p.prisPerLiterRenAlkohol > 0).map((p) => p.prisPerLiterRenAlkohol),
-  );
+  const subScope = getScope(undefined, product.underkategori);
+  const rankInSub = getRankInSubcategory(product);
+  const subMedianPpra = subScope.medianPpra;
   const ppra = Math.round(product.prisPerLiterRenAlkohol);
 
   return (
