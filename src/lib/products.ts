@@ -2,9 +2,20 @@ import "server-only";
 import productsRaw from "../data/products.json";
 import metaRaw from "../data/products.meta.json";
 import type { Product, ProductsMeta } from "./types";
+import { median } from "./derive";
 
 const PRODUCTS = productsRaw as Product[];
 const META = metaRaw as ProductsMeta;
+
+// Crawlers open thousands of pages a day, and every render used to scan or
+// sort all 36k products. Everything below is computed once per server
+// instance and reused, so a render only looks things up and slices.
+const BY_ID = new Map(PRODUCTS.map((p) => [p.id, p]));
+const memo = new Map<string, unknown>();
+function remember<T>(key: string, make: () => T): T {
+  if (!memo.has(key)) memo.set(key, make());
+  return memo.get(key) as T;
+}
 
 export function getAllProducts(): Product[] {
   return PRODUCTS;
@@ -15,7 +26,49 @@ export function getProductsMeta(): ProductsMeta {
 }
 
 export function getProductById(id: string): Product | null {
-  return PRODUCTS.find((p) => p.id === id) ?? null;
+  return BY_ID.get(id) ?? null;
+}
+
+/** One category scope (a main category, optionally one subcategory) with its
+    medians, computed once. Callers must not mutate the arrays. */
+export function getScope(hovedkategori?: string, underkategori?: string): {
+  products: Product[];
+  medianPpra: number;
+  medianPpl: number;
+} {
+  return remember(`scope:${hovedkategori ?? ""}:${underkategori ?? ""}`, () => {
+    const products = filterProducts(PRODUCTS, { hovedkategori, underkategori });
+    return {
+      products,
+      medianPpra: median(products.filter((p) => p.prisPerLiterRenAlkohol > 0).map((p) => p.prisPerLiterRenAlkohol)),
+      medianPpl: median(products.filter((p) => p.prisPerLiter > 0).map((p) => p.prisPerLiter)),
+    };
+  });
+}
+
+/** A scope sorted one way, computed once. Filtering this keeps the order, so
+    land and text filters never need another sort. */
+export function getSortedScope(sort: SortKey, hovedkategori?: string, underkategori?: string): Product[] {
+  return remember(`sorted:${sort}:${hovedkategori ?? ""}:${underkategori ?? ""}`, () =>
+    sortProducts(getScope(hovedkategori, underkategori).products, sort),
+  );
+}
+
+/** A product's rank by kr per litre pure alcohol within its subcategory. */
+export function getRankInSubcategory(product: Product): number {
+  const ranks = remember(`rank:${product.underkategori}`, () => {
+    const map = new Map<string, number>();
+    getSortedScope("ppra", undefined, product.underkategori).forEach((p, i) => map.set(p.id, i + 1));
+    return map;
+  });
+  return ranks.get(product.id) ?? 0;
+}
+
+/** Countries in a main category (or everything), computed once. */
+export function getCountriesFor(hovedkategori?: string): string[] {
+  return remember(`countries:${hovedkategori ?? ""}`, () =>
+    getCountries(hovedkategori ? getScope(hovedkategori).products : PRODUCTS),
+  );
 }
 
 export function getCountries(products: Product[] = PRODUCTS): string[] {
@@ -35,6 +88,14 @@ export type SortKey =
   | "abv-desc"
   | "volum-desc"
   | "navn";
+
+const SORT_KEYS: readonly SortKey[] = ["ppra", "ppra-desc", "ppl", "ppl-desc", "pris", "pris-desc", "abv", "abv-desc", "volum-desc", "navn"];
+
+/** A sort from the URL, or the fallback when it is missing or unknown (an
+    unknown key used to fall through sortProducts and break the page). */
+export function parseSort(value: unknown, fallback: SortKey): SortKey {
+  return typeof value === "string" && (SORT_KEYS as readonly string[]).includes(value) ? (value as SortKey) : fallback;
+}
 
 export interface ProductFilters {
   hovedkategori?: string;

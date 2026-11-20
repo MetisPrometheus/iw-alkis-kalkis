@@ -6,12 +6,12 @@ import { Paginator } from "@/components/Paginator";
 import { CategoryIcon } from "@/components/icons";
 import {
   filterProducts,
-  getAllProducts,
-  getCountries,
-  sortProducts,
+  getCountriesFor,
+  getScope,
+  getSortedScope,
+  parseSort,
   type SortKey,
 } from "@/lib/products";
-import { median } from "@/lib/derive";
 import {
   getMainCategory,
   getSubCategory,
@@ -38,6 +38,8 @@ export async function generateMetadata({ params }: PageProps) {
   return {
     title: `${resolved.title} · alkis kalkis`,
     description: `Bla og sortér ${resolved.title.toLowerCase()} etter pris per liter ren alkohol.`,
+    // Every ?sort/?page/?land variant points search engines at the base page.
+    alternates: { canonical: `https://alkiskalkis.com/kategori/${slug}` },
   };
 }
 
@@ -71,37 +73,26 @@ export default async function CategoryPage({ params, searchParams }: PageProps) 
   // kr/L for those routes.
   const isAlkFri = resolved.mainSlug === "annet";
   const defaultSort: SortKey = isAlkFri ? "ppl" : "ppra";
-  const sort = (typeof sp.sort === "string" ? sp.sort : defaultSort) as SortKey;
+  const sort = parseSort(sp.sort, defaultSort);
   const land = typeof sp.land === "string" ? sp.land : "";
   const q = typeof sp.q === "string" ? sp.q : "";
   const page = Math.max(1, numParam(sp.page) ?? 1);
 
-  const all = getAllProducts();
   // Median over the whole category scope (before user filters) so the
-  // per-card bars compare against a stable "snittet".
-  const scope = filterProducts(all, {
-    hovedkategori: resolved.mainSlug,
-    underkategori: resolved.kind === "sub" ? resolved.subSlug : undefined,
-  });
-  const medianPpra = median(
-    scope.filter((p) => p.prisPerLiterRenAlkohol > 0).map((p) => p.prisPerLiterRenAlkohol),
-  );
-  const medianPpl = median(
-    scope.filter((p) => p.prisPerLiter > 0).map((p) => p.prisPerLiter),
-  );
-  const filtered = filterProducts(scope, {
+  // per-card bars compare against a stable "snittet". The scope, its medians
+  // and each sort order are computed once and reused across requests.
+  const subSlug = resolved.kind === "sub" ? resolved.subSlug : undefined;
+  const { medianPpra, medianPpl } = getScope(resolved.mainSlug, subSlug);
+  const sorted = filterProducts(getSortedScope(sort, resolved.mainSlug, subSlug), {
     land: land || undefined,
     query: q || undefined,
   });
-  const sorted = sortProducts(filtered, sort);
   const totalPages = Math.max(1, Math.ceil(sorted.length / PAGE_SIZE));
   const safePage = Math.min(page, totalPages);
   const pageStart = (safePage - 1) * PAGE_SIZE;
   const pageEnd = pageStart + PAGE_SIZE;
   const pageSlice = sorted.slice(pageStart, pageEnd);
-  const countries = getCountries(
-    filterProducts(all, { hovedkategori: resolved.mainSlug }),
-  );
+  const countries = getCountriesFor(resolved.mainSlug);
   const mainCat = getMainCategory(resolved.mainSlug);
 
   return (

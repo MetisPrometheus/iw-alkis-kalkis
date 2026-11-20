@@ -44,7 +44,10 @@ export default function robots(): MetadataRoute.Robots {
       // /sok is an unbounded crawl trap: every q/sort/land/page combination
       // is a unique uncacheable SSR render. Nothing there needs indexing;
       // product and category pages carry the SEO weight via the sitemap.
-      { userAgent: "*", disallow: "/sok" },
+      // The same goes for category pages with a query string (?sort, ?page,
+      // ?land, ?q): every combination is a fresh server render. Crawlers get
+      // the base category pages and every product via the sitemap instead.
+      { userAgent: "*", disallow: ["/sok", "/*?"] },
     ],
     sitemap: "https://alkiskalkis.com/sitemap.xml",
   };

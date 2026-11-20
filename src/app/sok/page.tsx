@@ -4,9 +4,9 @@ import { Paginator } from "@/components/Paginator";
 import {
   filterProducts,
   getAllProducts,
-  getCountries,
-  sortProducts,
-  type SortKey,
+  getCountriesFor,
+  getSortedScope,
+  parseSort,
 } from "@/lib/products";
 import { median } from "@/lib/derive";
 
@@ -26,17 +26,17 @@ export const metadata = {
 
 export default async function SearchPage({ searchParams }: PageProps) {
   const sp = await searchParams;
-  const sort = (typeof sp.sort === "string" ? sp.sort : "ppra") as SortKey;
+  const sort = parseSort(sp.sort, "ppra");
   const land = typeof sp.land === "string" ? sp.land : "";
   const q = typeof sp.q === "string" ? sp.q : "";
   const page = Math.max(1, numParam(sp.page) ?? 1);
 
   const all = getAllProducts();
-  const filtered = filterProducts(all, {
+  // Filtering an already-sorted list keeps its order, so no per-request sort.
+  const sorted = filterProducts(getSortedScope(sort), {
     land: land || undefined,
     query: q || undefined,
   });
-  const sorted = sortProducts(filtered, sort);
   // Medians over the current result set so the per-card bars compare
   // against "snittet" for what you're actually looking at.
   const medianPpra = median(
@@ -47,7 +47,7 @@ export default async function SearchPage({ searchParams }: PageProps) {
   const safePage = Math.min(page, totalPages);
   const pageStart = (safePage - 1) * PAGE_SIZE;
   const pageSlice = sorted.slice(pageStart, pageStart + PAGE_SIZE);
-  const countries = getCountries(all);
+  const countries = getCountriesFor();
 
   return (
     <div className="space-y-6">
