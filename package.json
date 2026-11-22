@@ -9,9 +9,9 @@
     "lint": "eslint",
     "fetch:products": "tsx scripts/fetch-products.ts",
     "scrape:vmp": "tsx scripts/scrape-vmp.ts",
-    "refresh:data": "npm run scrape:vmp && npm run fetch:products",
-    "prebuild": "tsx scripts/fetch-products.ts",
-    "predev": "tsx scripts/fetch-products.ts --skip-if-exists"
+    "refresh:data": "npm run scrape:vmp && npm run fetch:products && tsx scripts/compact-products.ts",
+    "prebuild": "tsx scripts/fetch-products.ts && tsx scripts/compact-products.ts",
+    "predev": "tsx scripts/fetch-products.ts --skip-if-exists && tsx scripts/compact-products.ts"
   },
   "dependencies": {
     "csv-parse": "^6.2.1",

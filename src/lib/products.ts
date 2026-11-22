@@ -1,10 +1,38 @@
 import "server-only";
-import productsRaw from "../data/products.json";
+import compact from "../data/products.compact.json";
 import metaRaw from "../data/products.meta.json";
-import type { Product, ProductsMeta } from "./types";
-import { median } from "./derive";
+import type { MainCategorySlug, Product, ProductsMeta, SubCategorySlug } from "./types";
+import { median, prisPerLiter, prisPerLiterRenAlkohol } from "./derive";
 
-const PRODUCTS = productsRaw as Product[];
+// The catalog ships as products.compact.json (3.7 MB instead of 21 MB, see
+// scripts/compact-products.ts), which keeps cold serverless starts cheap.
+// Rows hold the stored fields; image URL, shop link and price per litre are
+// rebuilt here, and `extra` carries any value that did not fit those rules.
+type Row = [string, string, number, number, number, string, string, string | null, string | null];
+const EXTRA = compact.extra as Record<string, Partial<Product>>;
+const PRODUCTS: Product[] = (compact.rows as Row[]).map(([id, navn, volumLiter, pris, alkoholProsent, hovedkategori, underkategori, land, distrikt]) => ({
+  id,
+  navn,
+  volumLiter,
+  pris,
+  alkoholProsent,
+  hovedkategori: hovedkategori as MainCategorySlug,
+  underkategori: underkategori as SubCategorySlug,
+  land,
+  distrikt,
+  produsent: null,
+  argang: null,
+  bildeUrl: `https://bilder.vinmonopolet.no/cache/300x300-0/${id}-1.jpg`,
+  vmpUrl: `https://www.vinmonopolet.no/p/${id}`,
+  smaknotater: null,
+  lukt: null,
+  farge: null,
+  passerTil: [],
+  raastoff: null,
+  prisPerLiter: prisPerLiter(pris, volumLiter),
+  prisPerLiterRenAlkohol: prisPerLiterRenAlkohol(pris, volumLiter, alkoholProsent),
+  ...EXTRA[id],
+}));
 const META = metaRaw as ProductsMeta;
 
 // Crawlers open thousands of pages a day, and every render used to scan or
